@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanguanprod - Kerajaan Xiawbowo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="loading-screen">
+        <div class="logo-container">
+            <div class="hologram-ring"></div>
+            <div class="hologram-ring delay-1"></div>
+            <div class="hologram-ring delay-2"></div>
+            <h1 class="logo-text">SANGUANPROD</h1>
+        </div>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+        <p class="loading-text">Menginisialisasi sistem neural...</p>
+    </div>
+    <script>
+        // Check session
+        const token = localStorage.getItem('session_token');
+        const username = localStorage.getItem('username');
+        
+        setTimeout(() => {
+            if (token && username) {
+                window.location.href = 'dashboard.html';
+            } else {
+                window.location.href = 'login.html';
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
