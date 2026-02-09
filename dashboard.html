@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sanguanprod</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dashboard-body">
+    <div class="stars"></div>
+    <div class="stars2"></div>
+    
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="logo-symbol">
+                    <div class="symbol-core"></div>
+                    <div class="symbol-orbit"></div>
+                </div>
+                <span class="logo-text-sidebar">SANGUANPROD</span>
+            </div>
+            <button id="sidebarToggle" class="sidebar-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#home" class="nav-item active" data-page="home">
+                <span class="nav-icon">⬢</span>
+                <span class="nav-text">Home</span>
+                <div class="nav-glow"></div>
+            </a>
+            <a href="#senjata" class="nav-item" data-page="senjata">
+                <span class="nav-icon">⬡</span>
+                <span class="nav-text">Senjata</span>
+                <div class="nav-glow"></div>
+            </a>
+            <a href="#aplikasi" class="nav-item" data-page="aplikasi">
+                <span class="nav-icon">⬢</span>
+                <span class="nav-text">Aplikasi</span>
+                <div class="nav-glow"></div>
+            </a>
+            <a href="#tentang" class="nav-item" data-page="tentang">
+                <span class="nav-icon">⬡</span>
+                <span class="nav-text">Tentang Web</span>
+                <div class="nav-glow"></div>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <div class="avatar-ring"></div>
+                    <span id="userInitial"></span>
+                </div>
+                <div class="user-details">
+                    <span class="user-name" id="userName"></span>
+                    <span class="user-role" id="userRole"></span>
+                </div>
+            </div>
+            <button id="logoutBtn" class="logout-btn">
+                <span>Keluar</span>
+                <div class="logout-glow"></div>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="content-header">
+            <button id="mobileSidebarToggle" class="mobile-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="header-title">
+                <h1 id="pageTitle">Home</h1>
+                <div class="title-line"></div>
+            </div>
+            <div class="header-actions">
+                <div class="time-display" id="currentTime"></div>
+            </div>
+        </header>
+
+        <div class="content-body">
+            <!-- Home Page -->
+            <section id="page-home" class="page-section active">
+                <div class="welcome-card">
+                    <div class="card-glow"></div>
+                    <h2>Selamat Datang, <span id="welcomeUser"></span></h2>
+                    <p class="welcome-text">Sistem neural aktif. Semua protokol keamanan berjalan normal.</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">◈</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Status Sistem</span>
+                            <span class="stat-value">Optimal</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">◇</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Keamanan</span>
+                            <span class="stat-value">Level 5</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">◆</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Akses</span>
+                            <span class="stat-value" id="accessLevel">User</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-card" id="homeContent">
+                    <div class="card-header">
+                        <h3>Informasi Kerajaan</h3>
+                        <button id="editHomeBtn" class="edit-btn" style="display: none;">
+                            <span>Edit</span>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="homeContentDisplay">
+                            <p>Memuat konten...</p>
+                        </div>
+                        <div id="homeContentEditor" style="display: none;">
+                            <textarea id="homeContentText"></textarea>
+                            <div class="editor-actions">
+                                <button id="saveHomeBtn" class="save-btn">Simpan</button>
+                                <button id="cancelHomeBtn" class="cancel-btn">Batal</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Senjata Page -->
+            <section id="page-senjata" class="page-section">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3>Arsenal Kerajaan</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="weapon-grid">
+                            <div class="weapon-item">
+                                <div class="weapon-icon">⚔</div>
+                                <h4>Neural Blade X-500</h4>
+                                <p>Pedang plasma generasi terbaru dengan teknologi neural sync</p>
+                                <span class="weapon-status">Aktif</span>
+                            </div>
+                            <div class="weapon-item">
+                                <div class="weapon-icon">⚡</div>
+                                <h4>Quantum Rifle</h4>
+                                <p>Senjata jarak jauh dengan proyektil quantum entanglement</p>
+                                <span class="weapon-status">Aktif</span>
+                            </div>
+                            <div class="weapon-item">
+                                <div class="weapon-icon">◈</div>
+                                <h4>Shield Matrix</h4>
+                                <p>Perisai energi dengan regenerasi otomatis</p>
+                                <span class="weapon-status">Aktif</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Aplikasi Page -->
+            <section id="page-aplikasi" class="page-section">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3>Sistem Aplikasi</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="app-grid">
+                            <div class="app-item">
+                                <div class="app-icon">◆</div>
+                                <h4>Neural Scanner</h4>
+                                <p>Sistem pemindaian neural tingkat lanjut</p>
+                                <button class="app-launch">Luncurkan</button>
+                            </div>
+                            <div class="app-item">
+                                <div class="app-icon">◇</div>
+                                <h4>Quantum Comm</h4>
+                                <p>Komunikasi quantum terenkripsi</p>
+                                <button class="app-launch">Luncurkan</button>
+                            </div>
+                            <div class="app-item">
+                                <div class="app-icon">◈</div>
+                                <h4>Data Vault</h4>
+                                <p>Penyimpanan data ultra-aman</p>
+                                <button class="app-launch">Luncurkan</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tentang Page -->
+            <section id="page-tentang" class="page-section">
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3>Tentang Website</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="about-content">
+                            <h4>Sanguanprod - Portal Kerajaan Xiawbowo</h4>
+                            <p>Website ini merupakan portal resmi Kerajaan Xiawbowo yang dibangun dengan teknologi futuristik tahun 2500.</p>
+                            
+                            <h5>Teknologi yang Digunakan:</h5>
+                            <ul>
+                                <li>Neural Interface HTML5</li>
+                                <li>Quantum CSS Framework</li>
+                                <li>JavaScript AI Engine</li>
+                                <li>Google Spreadsheet Neural Database</li>
+                                <li>Apps Script Quantum Backend</li>
+                            </ul>
+
+                            <h5>Fitur Keamanan:</h5>
+                            <ul>
+                                <li>Autentikasi Neural Multi-Layer</li>
+                                <li>Enkripsi Quantum Level 5</li>
+                                <li>Session Token Temporal</li>
+                                <li>Role-Based Access Control</li>
+                            </ul>
+
+                            <div class="version-info">
+                                <span>Version: 25.0.0</span>
+                                <span>Build: 2500.02.09</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
