@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Pulsa - Sanguanprod</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="datapulsa-body">
+    <div class="stars"></div>
+    <div class="stars2"></div>
+    
+    <!-- Header -->
+    <header class="dp-header">
+        <button id="backBtn" class="back-btn">
+            <span>←</span>
+        </button>
+        <div class="header-info">
+            <h1>💰 DATA PULSA</h1>
+            <p id="currentUser"></p>
+        </div>
+        <div class="header-time" id="headerTime"></div>
+    </header>
+
+    <!-- Summary Card -->
+    <section class="summary-section">
+        <div class="summary-card">
+            <div class="summary-item total">
+                <span class="summary-icon">💵</span>
+                <div class="summary-details">
+                    <span class="summary-label">Total Uang</span>
+                    <span class="summary-value" id="totalUang">Rp 0</span>
+                </div>
+            </div>
+            
+            <div class="summary-item utang">
+                <span class="summary-icon">⚠️</span>
+                <div class="summary-details">
+                    <span class="summary-label">Jumlah Utang</span>
+                    <span class="summary-value" id="jumlahUtang">Rp 0</span>
+                </div>
+            </div>
+            
+            <div class="summary-item sisa">
+                <span class="summary-icon">✅</span>
+                <div class="summary-details">
+                    <span class="summary-label">Sisa Uang</span>
+                    <span class="summary-value" id="sisaUang">Rp 0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button id="storBtn" class="action-btn stor-btn">
+                <span class="btn-icon">💸</span>
+                <span>Stor Uang</span>
+            </button>
+            <button id="addTransactionBtn" class="action-btn add-btn">
+                <span class="btn-icon">➕</span>
+                <span>Tambah Transaksi</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- Filter Section -->
+    <section class="filter-section">
+        <div class="filter-container">
+            <label for="filterStatus">Filter:</label>
+            <select id="filterStatus" class="filter-select">
+                <option value="semua">Semua</option>
+                <option value="belum">Belum Bayar</option>
+                <option value="bayar">Sudah Bayar</option>
+            </select>
+        </div>
+        <div class="transaction-count">
+            <span id="transactionCount">0 transaksi</span>
+        </div>
+    </section>
+
+    <!-- Transactions List -->
+    <section class="transactions-section">
+        <div id="transactionsList" class="transactions-list">
+            <div class="loading-state">
+                <div class="loader"></div>
+                <p>Memuat data...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal: Stor Uang -->
+    <div id="storModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💸 Stor Uang</h3>
+                <button class="close-modal" data-modal="storModal">×</button>
+            </div>
+            <form id="storForm" class="modal-form">
+                <div class="form-group">
+                    <label>Jumlah</label>
+                    <input type="number" id="storJumlah" required placeholder="Masukkan jumlah">
+                </div>
+                <div class="form-group">
+                    <label>Keterangan</label>
+                    <input type="text" id="storKeterangan" required placeholder="Contoh: Makan siang">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" data-modal="storModal">Batal</button>
+                    <button type="submit" class="btn-submit">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add/Edit Transaction -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="transactionModalTitle">➕ Tambah Transaksi</h3>
+                <button class="close-modal" data-modal="transactionModal">×</button>
+            </div>
+            <form id="transactionForm" class="modal-form">
+                <input type="hidden" id="transactionRowIndex">
+                
+                <div class="form-group">
+                    <label>Tanggal</label>
+                    <input type="date" id="transactionTanggal" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Nama</label>
+                    <input type="text" id="transactionNama" required placeholder="Contoh: Pulsa Budi">
+                </div>
+                
+                <div class="form-group">
+                    <label>Jenis</label>
+                    <input type="text" id="transactionJenis" required placeholder="Contoh: XL, Isi Saldo">
+                </div>
+                
+                <div class="form-group">
+                    <label>Harga (gunakan - untuk pengeluaran)</label>
+                    <input type="number" id="transactionHarga" required placeholder="Contoh: -30000 atau 100000">
+                </div>
+                
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="transactionStatus" required>
+                        <option value="Belum">Belum Bayar</option>
+                        <option value="Bayar">Sudah Bayar</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Keterangan</label>
+                    <textarea id="transactionKeterangan" rows="3" placeholder="Keterangan tambahan (opsional)"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" data-modal="transactionModal">Batal</button>
+                    <button type="submit" class="btn-submit">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Delete Confirmation -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>⚠️ Konfirmasi Hapus</h3>
+                <button class="close-modal" data-modal="deleteModal">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Apakah Anda yakin ingin menghapus transaksi ini?</p>
+                <p class="delete-warning">Tindakan ini tidak dapat dibatalkan.</p>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" data-modal="deleteModal">Batal</button>
+                <button type="button" id="confirmDeleteBtn" class="btn-delete">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
