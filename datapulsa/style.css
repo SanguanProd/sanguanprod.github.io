@@ -200,6 +200,240 @@ body.datapulsa-body {
     box-shadow: 0 5px 15px rgba(0, 217, 255, 0.3);
 }
 
+/* Info Text */
+.info-text {
+    text-align: center;
+    padding: 15px;
+    background: rgba(0, 217, 255, 0.1);
+    border-radius: 10px;
+    font-family: var(--font-accent);
+    color: var(--accent-cyan);
+    font-size: 0.95rem;
+}
+
+/* Transactions Table Section */
+.transactions-section {
+    position: relative;
+    padding: 20px;
+    z-index: 1;
+}
+
+.table-container {
+    background: rgba(26, 35, 50, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(137, 207, 240, 0.3);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid rgba(137, 207, 240, 0.2);
+}
+
+.table-header h3 {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    color: var(--primary-blue);
+    letter-spacing: 2px;
+}
+
+.table-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-add-row,
+.btn-save-all {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-accent);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-add-row {
+    background: rgba(0, 217, 255, 0.2);
+    border: 1px solid rgba(0, 217, 255, 0.5);
+    color: var(--accent-cyan);
+}
+
+.btn-add-row:hover {
+    background: rgba(0, 217, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-save-all {
+    background: linear-gradient(135deg, var(--accent-cyan), var(--primary-blue));
+    color: var(--darker-blue);
+    font-weight: 700;
+}
+
+.btn-save-all:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 217, 255, 0.4);
+}
+
+.table-scroll {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 600px;
+}
+
+.transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-body);
+}
+
+.transaction-table thead {
+    position: sticky;
+    top: 0;
+    background: rgba(137, 207, 240, 0.9);
+    z-index: 10;
+}
+
+.transaction-table th {
+    padding: 12px;
+    text-align: left;
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--darker-blue);
+    letter-spacing: 1px;
+    border: 1px solid rgba(15, 20, 25, 0.2);
+    white-space: nowrap;
+}
+
+.transaction-table tbody tr {
+    background: rgba(15, 20, 25, 0.4);
+    transition: all 0.2s ease;
+}
+
+.transaction-table tbody tr:hover {
+    background: rgba(15, 20, 25, 0.6);
+}
+
+.transaction-table tbody tr.unsaved {
+    background: rgba(255, 110, 199, 0.1);
+}
+
+.transaction-table td {
+    padding: 8px;
+    border: 1px solid rgba(137, 207, 240, 0.2);
+}
+
+.transaction-table input,
+.transaction-table select {
+    width: 100%;
+    padding: 8px;
+    background: rgba(15, 20, 25, 0.6);
+    border: 1px solid rgba(137, 207, 240, 0.3);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.transaction-table input:focus,
+.transaction-table select:focus {
+    border-color: var(--accent-cyan);
+    background: rgba(15, 20, 25, 0.8);
+}
+
+.transaction-table input[type="date"] {
+    min-width: 140px;
+}
+
+.transaction-table input[type="number"] {
+    min-width: 120px;
+}
+
+.transaction-table select {
+    min-width: 120px;
+    cursor: pointer;
+}
+
+.confirm-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.confirm-icon {
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.confirm-toggle:hover .confirm-icon {
+    transform: scale(1.2);
+}
+
+.btn-delete-row {
+    background: rgba(255, 110, 199, 0.2);
+    border: 1px solid rgba(255, 110, 199, 0.5);
+    border-radius: 6px;
+    color: var(--accent-pink);
+    padding: 6px 10px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-delete-row:hover {
+    background: rgba(255, 110, 199, 0.3);
+    transform: scale(1.1);
+}
+
+.table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-top: 1px solid rgba(137, 207, 240, 0.2);
+    font-family: var(--font-accent);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.table-tip {
+    font-style: italic;
+}
+
+/* Responsive Table */
+@media (max-width: 768px) {
+    .table-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .table-actions {
+        width: 100%;
+    }
+    
+    .btn-add-row,
+    .btn-save-all {
+        flex: 1;
+    }
+    
+    .table-footer {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+}
+
 /* Summary Section */
 .summary-section {
     position: relative;
