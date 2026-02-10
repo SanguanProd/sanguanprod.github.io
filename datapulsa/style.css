@@ -131,6 +131,75 @@ body.datapulsa-body {
     white-space: nowrap;
 }
 
+/* Sheet Selector Section */
+.sheet-selector-section {
+    position: relative;
+    padding: 20px;
+    z-index: 1;
+}
+
+.sheet-selector-card {
+    background: rgba(26, 35, 50, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(137, 207, 240, 0.3);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.sheet-selector-card label {
+    display: block;
+    font-family: var(--font-accent);
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+}
+
+.select-group {
+    display: flex;
+    gap: 10px;
+}
+
+.sheet-select {
+    flex: 1;
+    padding: 12px 15px;
+    background: rgba(15, 20, 25, 0.6);
+    border: 1px solid rgba(137, 207, 240, 0.3);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.sheet-select:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 15px rgba(0, 217, 255, 0.2);
+}
+
+.btn-create-sheet {
+    padding: 12px 20px;
+    background: linear-gradient(135deg, rgba(0, 217, 255, 0.2), rgba(0, 217, 255, 0.3));
+    border: 1px solid rgba(0, 217, 255, 0.5);
+    border-radius: 10px;
+    color: var(--accent-cyan);
+    font-family: var(--font-accent);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-create-sheet:hover {
+    background: linear-gradient(135deg, rgba(0, 217, 255, 0.3), rgba(0, 217, 255, 0.4));
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 217, 255, 0.3);
+}
+
 /* Summary Section */
 .summary-section {
     position: relative;
@@ -929,6 +998,77 @@ body.datapulsa-body {
     .user-summary {
         grid-template-columns: 1fr;
     }
+    
+    .select-group {
+        flex-direction: column;
+    }
+    
+    .btn-create-sheet {
+        width: 100%;
+    }
+}
+
+/* Admin Specific Styles */
+.all-sheets-list {
+    padding: 20px;
+}
+
+.user-group {
+    margin-bottom: 30px;
+}
+
+.user-group-title {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    color: var(--primary-blue);
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(137, 207, 240, 0.3);
+}
+
+.sheets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.sheet-item {
+    background: rgba(15, 20, 25, 0.6);
+    border: 1px solid rgba(137, 207, 240, 0.2);
+    border-radius: 10px;
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.sheet-item:hover {
+    border-color: var(--accent-cyan);
+    transform: translateY(-3px);
+}
+
+.sheet-name {
+    font-family: var(--font-accent);
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.btn-view-sheet {
+    width: 100%;
+    padding: 10px;
+    background: rgba(0, 217, 255, 0.2);
+    border: 1px solid rgba(0, 217, 255, 0.5);
+    border-radius: 8px;
+    color: var(--accent-cyan);
+    font-family: var(--font-accent);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-view-sheet:hover {
+    background: rgba(0, 217, 255, 0.3);
+    transform: translateY(-2px);
 }
 
 @media (max-width: 480px) {
@@ -954,32 +1094,5 @@ body.datapulsa-body {
     
     .modal-content {
         margin: 10px;
-    }
-}
-
-/* Mobile Logout Button */
-.mobile-logout-btn {
-    display: none;
-    background: rgba(255, 110, 199, 0.2);
-    border: 1px solid rgba(255, 110, 199, 0.5);
-    border-radius: 8px;
-    width: 40px;
-    height: 40px;
-    align-items: center;
-    justify-content: center;
-    color: var(--accent-pink);
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.mobile-logout-btn:hover {
-    background: rgba(255, 110, 199, 0.3);
-    border-color: var(--accent-pink);
-}
-
-@media (max-width: 768px) {
-    .mobile-logout-btn {
-        display: flex;
     }
 }
