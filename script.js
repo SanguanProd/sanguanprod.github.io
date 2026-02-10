@@ -93,7 +93,15 @@ if (window.location.pathname.includes('dashboard.html')) {
         if (userRole) userRole.textContent = role;
         if (welcomeUser) welcomeUser.textContent = username;
         if (accessLevel) accessLevel.textContent = role === 'admin' ? 'Administrator' : 'User';
-        
+        // Mobile logout button
+        const mobileLogoutBtnDashboard = document.getElementById('mobileLogoutBtnDashboard');
+        if (mobileLogoutBtnDashboard) {
+            mobileLogoutBtnDashboard.addEventListener('click', () => {
+        if (confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+            localStorage.clear();
+            window.location.href = 'login.html'; }
+      });
+        }
         // Show edit button for admin
         if (role === 'admin') {
             const editHomeBtn = document.getElementById('editHomeBtn');
