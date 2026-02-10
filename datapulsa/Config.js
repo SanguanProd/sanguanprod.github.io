@@ -3,7 +3,7 @@
 const CONFIG = {
     // Ganti URL ini dengan URL Google Apps Script Web App khusus Data Pulsa
     // Format: https://script.google.com/macros/s/SCRIPT_ID/exec
-    API_URL: 'https://script.google.com/macros/s/AKfycbwzcqXneiM07qCiVN-NzPJymFAQ0JQHW4dCdJZ3sR5200cadAHFO2X06fuqKqK5SVgW/exec',
+    API_URL: 'https://script.google.com/macros/s/AKfycbyTOTVdzEz8NtwtYDl5UvD11_ZYXf-fenUGO9OMVNY7sseRcxLlQs1RbUcPXFHhFM6s8Q/exec',
     
     // Spreadsheet ID Admin (sama dengan yang utama)
     ADMIN_SPREADSHEET_ID: '1AHkRaRjdYbW2HlKx6_nfXk7HK0cR5CRnqoqJtHbEelw',
@@ -102,3 +102,4 @@ function formatDate(date) {
 function parseRupiah(rupiah) {
     return parseInt(rupiah.replace(/[^0-9-]/g, '')) || 0;
 }
+
