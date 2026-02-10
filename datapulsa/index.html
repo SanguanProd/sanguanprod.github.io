@@ -19,31 +19,29 @@
             <h1>💰 DATA PULSA</h1>
             <p id="currentUser"></p>
         </div>
+        <button id="mobileLogoutBtn" class="mobile-logout-btn">
+            <span>🚪</span>
+        </button>
         <div class="header-time" id="headerTime"></div>
-        <button id="adminPanelBtn" class="back-btn" style="display: none;" onclick="window.location.href='admin.html'">
-        <span>⚙️</span>
-    </button>
-    
-    <div class="header-time" id="headerTime"></div>
-<header class="dp-header">
-    <button id="backBtn" class="back-btn">
-        <span>←</span>
-    </button>
-    <div class="header-info">
-        <h1>💰 DATA PULSA</h1>
-        <p id="currentUser"></p>
-    </div>
-    
-    <!-- TAMBAHKAN TOMBOL LOGOUT MOBILE -->
-    <button id="mobileLogoutBtn" class="mobile-logout-btn">
-        <span>🚪</span>
-    </button>
-    
-    <div class="header-time" id="headerTime"></div>
-</header>
+    </header>
+
+    <!-- Sheet Selector -->
+    <section class="sheet-selector-section">
+        <div class="sheet-selector-card">
+            <label for="sheetSelect">Pilih Data Sheet:</label>
+            <div class="select-group">
+                <select id="sheetSelect" class="sheet-select">
+                    <option value="">-- Pilih Sheet --</option>
+                </select>
+                <button id="createSheetBtn" class="btn-create-sheet">
+                    ➕ Buat Baru
+                </button>
+            </div>
+        </div>
+    </section>
 
     <!-- Summary Card -->
-    <section class="summary-section">
+    <section class="summary-section" id="summarySection" style="display: none;">
         <div class="summary-card">
             <div class="summary-item total">
                 <span class="summary-icon">💵</span>
@@ -70,8 +68,6 @@
             </div>
         </div>
 
-        
-
         <!-- Action Buttons -->
         <div class="action-buttons">
             <button id="storBtn" class="action-btn stor-btn">
@@ -86,7 +82,7 @@
     </section>
 
     <!-- Filter Section -->
-    <section class="filter-section">
+    <section class="filter-section" id="filterSection" style="display: none;">
         <div class="filter-container">
             <label for="filterStatus">Filter:</label>
             <select id="filterStatus" class="filter-select">
@@ -101,14 +97,34 @@
     </section>
 
     <!-- Transactions List -->
-    <section class="transactions-section">
+    <section class="transactions-section" id="transactionsSection" style="display: none;">
         <div id="transactionsList" class="transactions-list">
-            <div class="loading-state">
-                <div class="loader"></div>
-                <p>Memuat data...</p>
+            <div class="empty-state">
+                <p>Pilih sheet untuk melihat data</p>
             </div>
         </div>
     </section>
+
+    <!-- Modal: Create Sheet -->
+    <div id="createSheetModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>➕ Buat Sheet Baru</h3>
+                <button class="close-modal" data-modal="createSheetModal">×</button>
+            </div>
+            <form id="createSheetForm" class="modal-form">
+                <div class="form-group">
+                    <label>Nama Sheet</label>
+                    <input type="text" id="newSheetName" required placeholder="Contoh: Januari, Pulsa, Keuangan">
+                    <small>Format: <strong>user1_namasheet</strong></small>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" data-modal="createSheetModal">Batal</button>
+                    <button type="submit" class="btn-submit">Buat Sheet</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Modal: Stor Uang -->
     <div id="storModal" class="modal">
@@ -202,11 +218,7 @@
             </div>
         </div>
     </div>
-<script>
-if (localStorage.getItem('role') === 'admin') {
-    document.getElementById('adminPanelBtn').style.display = 'flex';
-}
-</script>
+
     <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
