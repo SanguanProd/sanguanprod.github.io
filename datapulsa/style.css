@@ -956,3 +956,30 @@ body.datapulsa-body {
         margin: 10px;
     }
 }
+
+/* Mobile Logout Button */
+.mobile-logout-btn {
+    display: none;
+    background: rgba(255, 110, 199, 0.2);
+    border: 1px solid rgba(255, 110, 199, 0.5);
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-pink);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mobile-logout-btn:hover {
+    background: rgba(255, 110, 199, 0.3);
+    border-color: var(--accent-pink);
+}
+
+@media (max-width: 768px) {
+    .mobile-logout-btn {
+        display: flex;
+    }
+}
