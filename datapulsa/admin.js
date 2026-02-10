@@ -1,423 +1,188 @@
-// Admin Panel Script for Data Pulsa
+// Admin Panel Script
 
-let allProjects = [];
-let selectedUsername = null;
-let adminCurrentTransactions = [];
-let adminCurrentFilter = 'semua';
+const token = localStorage.getItem('session_token');
+const role = localStorage.getItem('role');
 
-// Initialize admin panel
-if (window.location.pathname.includes('admin.html')) {
-    document.addEventListener('DOMContentLoaded', () => {
-        initAdminPanel();
+let allSheets = [];
+let selectedSheet = null;
+let adminTransactions = [];
+let adminFilter = 'semua';
+
+document.addEventListener('DOMContentLoaded', () => {
+    initAdmin();
+});
+
+function initAdmin() {
+    document.getElementById('backBtn')?.addEventListener('click', () => {
+        window.location.href = '../dashboard.html';
     });
-}
-
-function initAdminPanel() {
-    // Back button
-    const backBtn = document.getElementById('backBtn');
-    if (backBtn) {
-        backBtn.addEventListener('click', () => {
-            window.location.href = '../dashboard.html';
-        });
-    }
     
-    // Add project form
-    const addProjectForm = document.getElementById('addProjectForm');
-    if (addProjectForm) {
-        addProjectForm.addEventListener('submit', handleAddProject);
-    }
+    document.getElementById('adminCreateSheetForm')?.addEventListener('submit', handleAdminCreateSheet);
+    document.getElementById('refreshBtn')?.addEventListener('click', loadAllSheets);
+    document.getElementById('adminFilter')?.addEventListener('change', (e) => {
+        adminFilter = e.target.value;
+        renderAdminTransactions();
+    });
     
-    // Refresh button
-    const refreshProjectsBtn = document.getElementById('refreshProjectsBtn');
-    if (refreshProjectsBtn) {
-        refreshProjectsBtn.addEventListener('click', loadProjects);
-    }
-    
-    // Admin filter
-    const adminFilterStatus = document.getElementById('adminFilterStatus');
-    if (adminFilterStatus) {
-        adminFilterStatus.addEventListener('change', (e) => {
-            adminCurrentFilter = e.target.value;
-            renderAdminTransactions();
-        });
-    }
-    
-    // Admin add transaction button
-    const adminAddTransactionBtn = document.getElementById('adminAddTransactionBtn');
-    if (adminAddTransactionBtn) {
-        adminAddTransactionBtn.addEventListener('click', () => {
-            openAdminTransactionModal();
-        });
-    }
-    
-    // Admin transaction form
-    const adminTransactionForm = document.getElementById('adminTransactionForm');
-    if (adminTransactionForm) {
-        adminTransactionForm.addEventListener('submit', handleAdminTransactionSubmit);
-    }
-    
-    // Modal close buttons
-    document.querySelectorAll('.close-modal, .btn-cancel').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+    document.querySelectorAll('.close-modal').forEach(btn => {
+        btn.addEventListener('click', () => {
             const modalId = btn.getAttribute('data-modal');
-            if (modalId) {
-                closeModal(modalId);
-            }
+            if (modalId) closeModal(modalId);
         });
     });
     
-    // Load projects
-    loadProjects();
+    loadAllSheets();
 }
 
-async function handleAddProject(e) {
+async function handleAdminCreateSheet(e) {
     e.preventDefault();
     
-    const username = document.getElementById('projectUsername').value.trim();
-    const spreadsheetUrl = document.getElementById('projectSpreadsheet').value.trim();
+    const username = document.getElementById('adminUsername').value.trim();
+    const sheetName = document.getElementById('adminSheetName').value.trim();
     
-    if (!username || !spreadsheetUrl) {
-        alert('Mohon lengkapi semua field');
-        return;
-    }
-    
-    // Validate spreadsheet URL
-    if (!spreadsheetUrl.includes('docs.google.com/spreadsheets')) {
-        alert('URL spreadsheet tidak valid. Pastikan menggunakan Google Spreadsheet.');
+    if (!username || !sheetName) {
+        alert('❌ Mohon lengkapi semua field');
         return;
     }
     
     try {
-        const result = await API.addUserProject(username, spreadsheetUrl, token);
+        const result = await API.createSheet(username, sheetName, token);
         
         if (result.success) {
-            showSuccess('Project berhasil ditambahkan');
-            document.getElementById('addProjectForm').reset();
-            loadProjects();
+            alert('✅ Sheet berhasil dibuat!');
+            document.getElementById('adminCreateSheetForm').reset();
+            loadAllSheets();
         } else {
-            showError('Gagal menambahkan project: ' + result.message);
+            alert('❌ ' + result.message);
         }
     } catch (error) {
         console.error('Error:', error);
-        showError('Terjadi kesalahan');
+        alert('❌ Terjadi kesalahan');
     }
 }
 
-async function loadProjects() {
-    const projectsList = document.getElementById('projectsList');
-    
-    if (!projectsList) return;
-    
-    projectsList.innerHTML = `
-        <div class="loading-state">
-            <div class="loader"></div>
-            <p>Memuat data...</p>
-        </div>
-    `;
+async function loadAllSheets() {
+    const list = document.getElementById('allSheetsList');
+    list.innerHTML = '<div class="loading-state"><div class="loader"></div><p>Memuat data...</p></div>';
     
     try {
-        const result = await API.getAllProjects(token);
+        const result = await API.getAllSheets(token);
         
         if (result.success) {
-            allProjects = result.projects || [];
-            renderProjects();
+            allSheets = result.sheets || [];
+            renderAllSheets();
         } else {
-            projectsList.innerHTML = `
-                <div class="empty-state">
-                    <p>Gagal memuat project: ${result.message}</p>
-                </div>
-            `;
+            list.innerHTML = `<div class="empty-state"><p>${result.message}</p></div>`;
         }
     } catch (error) {
         console.error('Error:', error);
-        projectsList.innerHTML = `
-            <div class="empty-state">
-                <p>Terjadi kesalahan saat memuat data</p>
-            </div>
-        `;
+        list.innerHTML = '<div class="empty-state"><p>Terjadi kesalahan</p></div>';
     }
 }
 
-function renderProjects() {
-    const projectsList = document.getElementById('projectsList');
+function renderAllSheets() {
+    const list = document.getElementById('allSheetsList');
     
-    if (!projectsList) return;
-    
-    if (allProjects.length === 0) {
-        projectsList.innerHTML = `
-            <div class="empty-state">
-                <p>Belum ada project yang ditambahkan</p>
-            </div>
-        `;
+    if (allSheets.length === 0) {
+        list.innerHTML = '<div class="empty-state"><p>Belum ada sheet</p></div>';
         return;
     }
     
-    projectsList.innerHTML = allProjects.map((project, index) => `
-        <div class="project-item">
-            <div class="project-header">
-                <div class="project-username">👤 ${project.username}</div>
-                <span class="project-status">${project.status || 'active'}</span>
+    // Group by user
+    const grouped = {};
+    allSheets.forEach(sheet => {
+        const user = sheet.split('_')[0];
+        if (!grouped[user]) grouped[user] = [];
+        grouped[user].push(sheet);
+    });
+    
+    list.innerHTML = Object.keys(grouped).map(user => `
+        <div class="user-group">
+            <h4 class="user-group-title">👤 ${user}</h4>
+            <div class="sheets-grid">
+                ${grouped[user].map(sheet => `
+                    <div class="sheet-item">
+                        <div class="sheet-name">📄 ${sheet.replace(user + '_', '')}</div>
+                        <button class="btn-view-sheet" onclick="viewSheet('${sheet}')">Lihat Data</button>
+                    </div>
+                `).join('')}
             </div>
-            <div class="project-date">📅 Dibuat: ${project.created_date}</div>
-            <div class="project-url">🔗 ${project.spreadsheet_url}</div>
-            <button class="btn-view-data" onclick="viewUserData('${project.username}')">
-                📊 Lihat & Edit Data
-            </button>
         </div>
     `).join('');
 }
 
-async function viewUserData(username) {
-    selectedUsername = username;
+async function viewSheet(sheetName) {
+    selectedSheet = sheetName;
     
-    const modal = document.getElementById('userDataModal');
-    const title = document.getElementById('userDataTitle');
-    const transactionsList = document.getElementById('adminTransactionsList');
+    document.getElementById('viewSheetTitle').textContent = `📊 ${sheetName}`;
+    document.getElementById('adminTransactionsList').innerHTML = '<div class="loading-state"><div class="loader"></div><p>Memuat...</p></div>';
     
-    if (title) {
-        title.textContent = `👤 Data User: ${username}`;
-    }
-    
-    if (transactionsList) {
-        transactionsList.innerHTML = `
-            <div class="loading-state">
-                <div class="loader"></div>
-                <p>Memuat data...</p>
-            </div>
-        `;
-    }
-    
-    if (modal) {
-        modal.classList.add('show');
-    }
+    openModal('viewSheetModal');
     
     try {
-        // Load transactions
-        const transResult = await API.getTransactions(username, token);
+        const [transResult, summaryResult] = await Promise.all([
+            API.getTransactions(sheetName, token),
+            API.getSummary(sheetName, token)
+        ]);
         
         if (transResult.success) {
-            adminCurrentTransactions = transResult.transactions || [];
+            adminTransactions = transResult.transactions || [];
             renderAdminTransactions();
         } else {
-            if (transactionsList) {
-                transactionsList.innerHTML = `
-                    <div class="empty-state">
-                        <p>Gagal memuat transaksi: ${transResult.message}</p>
-                    </div>
-                `;
-            }
+            document.getElementById('adminTransactionsList').innerHTML = '<div class="empty-state"><p>Gagal memuat transaksi</p></div>';
         }
-        
-        // Load summary
-        const summaryResult = await API.getSummary(username, token);
         
         if (summaryResult.success) {
-            updateAdminSummary(summaryResult.summary);
-        } else {
-            updateAdminSummary({ total: 0, utang: 0, sisa: 0 });
+            const s = summaryResult.summary;
+            document.getElementById('adminTotal').textContent = formatRupiah(s.total || 0);
+            document.getElementById('adminUtang').textContent = formatRupiah(s.utang || 0);
+            document.getElementById('adminSisa').textContent = formatRupiah(s.sisa || 0);
         }
-        
     } catch (error) {
         console.error('Error:', error);
-        if (transactionsList) {
-            transactionsList.innerHTML = `
-                <div class="empty-state">
-                    <p>Terjadi kesalahan saat memuat data</p>
-                </div>
-            `;
-        }
+        document.getElementById('adminTransactionsList').innerHTML = '<div class="empty-state"><p>Terjadi kesalahan</p></div>';
     }
-}
-
-function updateAdminSummary(summary) {
-    const totalUangEl = document.getElementById('adminTotalUang');
-    const jumlahUtangEl = document.getElementById('adminJumlahUtang');
-    const sisaUangEl = document.getElementById('adminSisaUang');
-    
-    if (totalUangEl) totalUangEl.textContent = formatRupiah(summary.total || 0);
-    if (jumlahUtangEl) jumlahUtangEl.textContent = formatRupiah(summary.utang || 0);
-    if (sisaUangEl) sisaUangEl.textContent = formatRupiah(summary.sisa || 0);
 }
 
 function renderAdminTransactions() {
-    const transactionsList = document.getElementById('adminTransactionsList');
+    const list = document.getElementById('adminTransactionsList');
     
-    if (!transactionsList) return;
-    
-    // Filter transactions
-    let filtered = adminCurrentTransactions;
-    if (adminCurrentFilter === 'belum') {
-        filtered = adminCurrentTransactions.filter(t => t.status === 'Belum');
-    } else if (adminCurrentFilter === 'bayar') {
-        filtered = adminCurrentTransactions.filter(t => t.status === 'Bayar');
-    }
+    let filtered = adminTransactions;
+    if (adminFilter === 'belum') filtered = adminTransactions.filter(t => t.status === 'Belum');
+    else if (adminFilter === 'bayar') filtered = adminTransactions.filter(t => t.status === 'Bayar');
     
     if (filtered.length === 0) {
-        transactionsList.innerHTML = `
-            <div class="empty-state">
-                <p>Tidak ada transaksi</p>
-            </div>
-        `;
+        list.innerHTML = '<div class="empty-state"><p>Tidak ada transaksi</p></div>';
         return;
     }
     
-    transactionsList.innerHTML = filtered.map((trans, index) => {
-        const originalIndex = adminCurrentTransactions.indexOf(trans);
-        const harga = parseInt(trans.harga) || 0;
+    list.innerHTML = filtered.map(t => {
+        const harga = parseInt(t.harga) || 0;
         const priceClass = harga >= 0 ? 'price-positive' : 'price-negative';
-        const statusClass = trans.status === 'Bayar' ? 'status-bayar' : 'status-belum';
-        const statusIcon = trans.status === 'Bayar' ? '✅' : '❌';
+        const statusClass = t.status === 'Bayar' ? 'status-bayar' : 'status-belum';
+        const statusIcon = t.status === 'Bayar' ? '✅' : '❌';
         
         return `
             <div class="transaction-card">
                 <div class="transaction-header">
-                    <span class="transaction-date">📅 ${trans.tanggal}</span>
-                    <span class="transaction-status ${statusClass}">${statusIcon} ${trans.status}</span>
+                    <span class="transaction-date">📅 ${t.tanggal}</span>
+                    <span class="transaction-status ${statusClass}">${statusIcon} ${t.status}</span>
                 </div>
                 <div class="transaction-info">
-                    <div class="transaction-name">${trans.nama}</div>
-                    <div class="transaction-jenis">${trans.jenis}</div>
+                    <div class="transaction-name">${t.nama}</div>
+                    <div class="transaction-jenis">${t.jenis}</div>
                 </div>
-                <div class="transaction-price ${priceClass}">
-                    ${formatRupiah(harga)}
-                </div>
-                ${trans.keterangan ? `
-                    <div class="transaction-keterangan">
-                        ${trans.keterangan}
-                    </div>
-                ` : ''}
-                <div class="transaction-actions">
-                    <button class="btn-edit" onclick="editAdminTransaction(${originalIndex})">
-                        ✏️ Edit
-                    </button>
-                    <button class="btn-delete" onclick="deleteAdminTransaction(${originalIndex})">
-                        🗑️ Hapus
-                    </button>
-                </div>
+                <div class="transaction-price ${priceClass}">${formatRupiah(harga)}</div>
+                ${t.keterangan ? `<div class="transaction-keterangan">${t.keterangan}</div>` : ''}
             </div>
         `;
     }).join('');
 }
 
-function openAdminTransactionModal(editData = null, rowIndex = null) {
-    const modal = document.getElementById('adminTransactionModal');
-    const form = document.getElementById('adminTransactionForm');
-    const title = document.getElementById('adminTransactionModalTitle');
-    
-    if (form) form.reset();
-    
-    document.getElementById('adminTransactionUsername').value = selectedUsername;
-    
-    if (editData) {
-        // Edit mode
-        if (title) title.textContent = '✏️ Edit Transaksi';
-        
-        document.getElementById('adminTransactionRowIndex').value = rowIndex;
-        document.getElementById('adminTransactionTanggal').value = editData.tanggal.split('-').reverse().join('-');
-        document.getElementById('adminTransactionNama').value = editData.nama;
-        document.getElementById('adminTransactionJenis').value = editData.jenis;
-        document.getElementById('adminTransactionHarga').value = editData.harga;
-        document.getElementById('adminTransactionStatus').value = editData.status;
-        document.getElementById('adminTransactionKeterangan').value = editData.keterangan || '';
-    } else {
-        // Add mode
-        if (title) title.textContent = '➕ Tambah Transaksi';
-        document.getElementById('adminTransactionRowIndex').value = '';
-        document.getElementById('adminTransactionTanggal').value = new Date().toISOString().split('T')[0];
-    }
-    
-    if (modal) {
-        modal.classList.add('show');
-    }
+function openModal(id) {
+    document.getElementById(id)?.classList.add('show');
 }
 
-async function handleAdminTransactionSubmit(e) {
-    e.preventDefault();
-    
-    const username = document.getElementById('adminTransactionUsername').value;
-    const rowIndex = document.getElementById('adminTransactionRowIndex').value;
-    const tanggalInput = document.getElementById('adminTransactionTanggal').value;
-    const nama = document.getElementById('adminTransactionNama').value;
-    const jenis = document.getElementById('adminTransactionJenis').value;
-    const harga = document.getElementById('adminTransactionHarga').value;
-    const status = document.getElementById('adminTransactionStatus').value;
-    const keterangan = document.getElementById('adminTransactionKeterangan').value;
-    
-    // Convert date format
-    const [year, month, day] = tanggalInput.split('-');
-    const tanggal = `${day}-${month}-${year}`;
-    
-    const transaction = {
-        tanggal,
-        nama,
-        jenis,
-        harga: parseInt(harga),
-        status,
-        keterangan
-    };
-    
-    try {
-        let result;
-        
-        if (rowIndex) {
-            // Update existing
-            result = await API.updateTransaction(username, parseInt(rowIndex), transaction, token);
-        } else {
-            // Add new
-            result = await API.addTransaction(username, transaction, token);
-        }
-        
-        if (result.success) {
-            closeModal('adminTransactionModal');
-            viewUserData(username); // Reload data
-            showSuccess(rowIndex ? 'Transaksi berhasil diupdate' : 'Transaksi berhasil ditambahkan');
-        } else {
-            showError('Gagal menyimpan: ' + result.message);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showError('Terjadi kesalahan');
-    }
-}
-
-function editAdminTransaction(index) {
-    const transaction = adminCurrentTransactions[index];
-    if (transaction) {
-        openAdminTransactionModal(transaction, index);
-    }
-}
-
-async function deleteAdminTransaction(index) {
-    if (!confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
-        return;
-    }
-    
-    try {
-        const result = await API.deleteTransaction(selectedUsername, index, token);
-        
-        if (result.success) {
-            viewUserData(selectedUsername); // Reload data
-            showSuccess('Transaksi berhasil dihapus');
-        } else {
-            showError('Gagal menghapus: ' + result.message);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showError('Terjadi kesalahan');
-    }
-}
-
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.remove('show');
-    }
-}
-
-function showSuccess(message) {
-    alert('✅ ' + message);
-}
-
-function showError(message) {
-    alert('❌ ' + message);
+function closeModal(id) {
+    document.getElementById(id)?.classList.remove('show');
 }
