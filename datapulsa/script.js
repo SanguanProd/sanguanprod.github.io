@@ -1,11 +1,10 @@
-// Data Pulsa - Single Spreadsheet Multi-Sheet System
+// Data Pulsa - Editable Table Version
 
 // ========== CONFIG (INLINE) ==========
 const CONFIG = {
-    API_URL: 'https://script.google.com/macros/s/AKfycbxm6qwWstFfkaaaBTfcC4SZ1I8GU82MFnChgEHbjZJG2IbueZDL_4nhd_qsEZJYJ8OKWQ/exec',
+    API_URL: 'YOUR_DATAPULSA_APPS_SCRIPT_URL_HERE',
     SPREADSHEET_ID: '1AHkRaRjdYbW2HlKx6_nfXk7HK0cR5CRnqoqJtHbEelw',
-    SESSION_TIMEOUT: 24 * 60 * 60 * 1000,
-    ROLES: { ADMIN: 'admin', USER: 'user' }
+    JENIS_OPTIONS: ['Pulsa', 'Kuota', 'Transfer', 'E-Wallet', 'Topup']
 };
 
 const API = {
@@ -25,23 +24,14 @@ const API = {
     async getUserSheets(username, token) {
         return await this.call('getUserSheets', { username, token });
     },
-    async getAllSheets(token) {
-        return await this.call('getAllSheets', { token });
-    },
     async createSheet(username, sheetName, token) {
         return await this.call('createSheet', { username, sheetName, token });
     },
     async getTransactions(sheetName, token) {
         return await this.call('getTransactions', { sheetName, token });
     },
-    async addTransaction(sheetName, transaction, token) {
-        return await this.call('addTransaction', { sheetName, transaction, token });
-    },
-    async updateTransaction(sheetName, rowIndex, transaction, token) {
-        return await this.call('updateTransaction', { sheetName, rowIndex, transaction, token });
-    },
-    async deleteTransaction(sheetName, rowIndex, token) {
-        return await this.call('deleteTransaction', { sheetName, rowIndex, token });
+    async saveAllTransactions(sheetName, transactions, token) {
+        return await this.call('saveAllTransactions', { sheetName, transactions, token });
     },
     async getSummary(sheetName, token) {
         return await this.call('getSummary', { sheetName, token });
@@ -55,19 +45,10 @@ function formatRupiah(number) {
         minimumFractionDigits: 0
     }).format(number);
 }
-
-function formatDate(date) {
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}-${month}-${year}`;
-}
 // ========== END CONFIG ==========
 
 const token = localStorage.getItem('session_token');
 const username = localStorage.getItem('username');
-const role = localStorage.getItem('role');
 
 if (!token || !username) {
     window.location.href = '../login.html';
@@ -75,29 +56,22 @@ if (!token || !username) {
 
 let userSheets = [];
 let currentSheet = null;
-let currentTransactions = [];
-let currentFilter = 'semua';
-let deleteRowIndex = null;
+let tableRows = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     initDataPulsa();
 });
 
 function initDataPulsa() {
-    const currentUserEl = document.getElementById('currentUser');
-    if (currentUserEl) {
-        currentUserEl.textContent = `User: ${username}`;
-    }
+    document.getElementById('currentUser').textContent = `User: ${username}`;
     
     updateHeaderTime();
     setInterval(updateHeaderTime, 1000);
     
-    // Back button
     document.getElementById('backBtn')?.addEventListener('click', () => {
         window.location.href = '../dashboard.html';
     });
     
-    // Mobile logout
     document.getElementById('mobileLogoutBtn')?.addEventListener('click', () => {
         if (confirm('Keluar dari sistem?')) {
             localStorage.clear();
@@ -105,7 +79,6 @@ function initDataPulsa() {
         }
     });
     
-    // Sheet selector
     document.getElementById('sheetSelect')?.addEventListener('change', (e) => {
         currentSheet = e.target.value;
         if (currentSheet) {
@@ -115,28 +88,12 @@ function initDataPulsa() {
         }
     });
     
-    // Create sheet button
     document.getElementById('createSheetBtn')?.addEventListener('click', openCreateSheetModal);
-    
-    // Create sheet form
     document.getElementById('createSheetForm')?.addEventListener('submit', handleCreateSheet);
     
-    // Stor & Add buttons
-    document.getElementById('storBtn')?.addEventListener('click', openStorModal);
-    document.getElementById('addTransactionBtn')?.addEventListener('click', () => openTransactionModal());
+    document.getElementById('addRowBtn')?.addEventListener('click', addNewRow);
+    document.getElementById('saveAllBtn')?.addEventListener('click', saveAllData);
     
-    // Filter
-    document.getElementById('filterStatus')?.addEventListener('change', (e) => {
-        currentFilter = e.target.value;
-        renderTransactions();
-    });
-    
-    // Forms
-    document.getElementById('storForm')?.addEventListener('submit', handleStorSubmit);
-    document.getElementById('transactionForm')?.addEventListener('submit', handleTransactionSubmit);
-    document.getElementById('confirmDeleteBtn')?.addEventListener('click', handleDeleteConfirm);
-    
-    // Modal close
     document.querySelectorAll('.close-modal, .btn-cancel').forEach(btn => {
         btn.addEventListener('click', () => {
             const modalId = btn.getAttribute('data-modal');
@@ -166,7 +123,7 @@ async function loadUserSheets() {
             alert('❌ ' + result.message);
         }
     } catch (error) {
-        console.error('Error loading sheets:', error);
+        console.error('Error:', error);
         alert('❌ Gagal memuat daftar sheet');
     }
 }
@@ -200,8 +157,6 @@ async function handleCreateSheet(e) {
         return;
     }
     
-    const fullSheetName = `${username}_${sheetName}`;
-    
     try {
         const result = await API.createSheet(username, sheetName, token);
         
@@ -209,8 +164,9 @@ async function handleCreateSheet(e) {
             closeModal('createSheetModal');
             alert('✅ Sheet berhasil dibuat!');
             await loadUserSheets();
-            document.getElementById('sheetSelect').value = fullSheetName;
-            currentSheet = fullSheetName;
+            const fullName = `${username}_${sheetName}`;
+            document.getElementById('sheetSelect').value = fullName;
+            currentSheet = fullName;
             loadSheetData();
         } else {
             alert('❌ ' + result.message);
@@ -226,8 +182,6 @@ async function loadSheetData() {
     
     showDataSections();
     
-    document.getElementById('transactionsList').innerHTML = '<div class="loading-state"><div class="loader"></div><p>Memuat data...</p></div>';
-    
     try {
         const [transResult, summaryResult] = await Promise.all([
             API.getTransactions(currentSheet, token),
@@ -235,11 +189,11 @@ async function loadSheetData() {
         ]);
         
         if (transResult.success) {
-            currentTransactions = transResult.transactions || [];
-            renderTransactions();
+            tableRows = transResult.transactions || [];
+            renderTable();
         } else {
-            currentTransactions = [];
-            renderTransactions();
+            tableRows = [];
+            renderTable();
         }
         
         if (summaryResult.success) {
@@ -249,19 +203,17 @@ async function loadSheetData() {
         }
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById('transactionsList').innerHTML = '<div class="empty-state"><p>Terjadi kesalahan saat memuat data</p></div>';
+        alert('❌ Gagal memuat data');
     }
 }
 
 function showDataSections() {
     document.getElementById('summarySection').style.display = 'block';
-    document.getElementById('filterSection').style.display = 'flex';
     document.getElementById('transactionsSection').style.display = 'block';
 }
 
 function hideDataSections() {
     document.getElementById('summarySection').style.display = 'none';
-    document.getElementById('filterSection').style.display = 'none';
     document.getElementById('transactionsSection').style.display = 'none';
 }
 
@@ -271,184 +223,225 @@ function updateSummary(summary) {
     document.getElementById('sisaUang').textContent = formatRupiah(summary.sisa || 0);
 }
 
-function renderTransactions() {
-    const list = document.getElementById('transactionsList');
-    const count = document.getElementById('transactionCount');
+function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
     
-    let filtered = currentTransactions;
-    if (currentFilter === 'belum') filtered = currentTransactions.filter(t => t.status === 'Belum');
-    else if (currentFilter === 'bayar') filtered = currentTransactions.filter(t => t.status === 'Bayar');
+    // Render existing rows
+    tableRows.forEach((row, index) => {
+        tbody.appendChild(createTableRow(row, index));
+    });
     
-    if (count) count.textContent = `${filtered.length} transaksi`;
-    
-    if (filtered.length === 0) {
-        list.innerHTML = '<div class="empty-state"><p>Tidak ada transaksi</p></div>';
-        return;
+    // Add 10 empty rows for new input
+    for (let i = 0; i < 10; i++) {
+        tbody.appendChild(createTableRow({
+            tanggal: '',
+            nama: '',
+            jenis: '',
+            harga: '',
+            status: 'Belum',
+            keterangan: ''
+        }, tableRows.length + i, true));
     }
     
-    list.innerHTML = filtered.map((t, idx) => {
-        const originalIdx = currentTransactions.indexOf(t);
-        const harga = parseInt(t.harga) || 0;
-        const priceClass = harga >= 0 ? 'price-positive' : 'price-negative';
-        const statusClass = t.status === 'Bayar' ? 'status-bayar' : 'status-belum';
-        const statusIcon = t.status === 'Bayar' ? '✅' : '❌';
-        
-        return `
-            <div class="transaction-card">
-                <div class="transaction-header">
-                    <span class="transaction-date">📅 ${t.tanggal}</span>
-                    <span class="transaction-status ${statusClass}">${statusIcon} ${t.status}</span>
-                </div>
-                <div class="transaction-info">
-                    <div class="transaction-name">${t.nama}</div>
-                    <div class="transaction-jenis">${t.jenis}</div>
-                </div>
-                <div class="transaction-price ${priceClass}">${formatRupiah(harga)}</div>
-                ${t.keterangan ? `<div class="transaction-keterangan">${t.keterangan}</div>` : ''}
-                <div class="transaction-actions">
-                    <button class="btn-edit" onclick="editTransaction(${originalIdx})">✏️ Edit</button>
-                    <button class="btn-delete" onclick="deleteTransaction(${originalIdx})">🗑️ Hapus</button>
-                </div>
-            </div>
-        `;
-    }).join('');
+    updateRowCount();
 }
 
-function openStorModal() {
+function createTableRow(data, index, isNew = false) {
+    const tr = document.createElement('tr');
+    if (isNew) tr.classList.add('unsaved');
+    tr.dataset.index = index;
+    
+    // Tanggal
+    const tdTanggal = document.createElement('td');
+    const inputTanggal = document.createElement('input');
+    inputTanggal.type = 'date';
+    inputTanggal.value = data.tanggal ? convertDateToInput(data.tanggal) : '';
+    tdTanggal.appendChild(inputTanggal);
+    
+    // Nama
+    const tdNama = document.createElement('td');
+    const inputNama = document.createElement('input');
+    inputNama.type = 'text';
+    inputNama.value = data.nama || '';
+    inputNama.placeholder = 'Nama transaksi';
+    tdNama.appendChild(inputNama);
+    
+    // Jenis (dropdown)
+    const tdJenis = document.createElement('td');
+    const selectJenis = document.createElement('select');
+    selectJenis.innerHTML = '<option value="">-- Pilih --</option>';
+    CONFIG.JENIS_OPTIONS.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt;
+        option.textContent = opt;
+        if (data.jenis === opt) option.selected = true;
+        selectJenis.appendChild(option);
+    });
+    tdJenis.appendChild(selectJenis);
+    
+    // Harga
+    const tdHarga = document.createElement('td');
+    const inputHarga = document.createElement('input');
+    inputHarga.type = 'number';
+    inputHarga.value = data.harga || '';
+    inputHarga.placeholder = '0';
+    tdHarga.appendChild(inputHarga);
+    
+    // Konfirmasi (Toggle)
+    const tdStatus = document.createElement('td');
+    const divToggle = document.createElement('div');
+    divToggle.className = 'confirm-toggle';
+    divToggle.innerHTML = `<span class="confirm-icon">${data.status === 'Bayar' ? '✅' : '❌'}</span>`;
+    divToggle.dataset.status = data.status || 'Belum';
+    divToggle.addEventListener('click', () => {
+        const newStatus = divToggle.dataset.status === 'Bayar' ? 'Belum' : 'Bayar';
+        divToggle.dataset.status = newStatus;
+        divToggle.innerHTML = `<span class="confirm-icon">${newStatus === 'Bayar' ? '✅' : '❌'}</span>`;
+    });
+    tdStatus.appendChild(divToggle);
+    
+    // Keterangan
+    const tdKet = document.createElement('td');
+    const inputKet = document.createElement('input');
+    inputKet.type = 'text';
+    inputKet.value = data.keterangan || '';
+    inputKet.placeholder = 'Keterangan';
+    tdKet.appendChild(inputKet);
+    
+    // Delete button
+    const tdDelete = document.createElement('td');
+    const btnDelete = document.createElement('button');
+    btnDelete.className = 'btn-delete-row';
+    btnDelete.innerHTML = '🗑️';
+    btnDelete.addEventListener('click', () => {
+        if (confirm('Hapus baris ini?')) {
+            tr.remove();
+            updateRowCount();
+        }
+    });
+    tdDelete.appendChild(btnDelete);
+    
+    tr.appendChild(tdTanggal);
+    tr.appendChild(tdNama);
+    tr.appendChild(tdJenis);
+    tr.appendChild(tdHarga);
+    tr.appendChild(tdStatus);
+    tr.appendChild(tdKet);
+    tr.appendChild(tdDelete);
+    
+    return tr;
+}
+
+function addNewRow() {
+    const tbody = document.getElementById('tableBody');
+    tbody.appendChild(createTableRow({
+        tanggal: '',
+        nama: '',
+        jenis: '',
+        harga: '',
+        status: 'Belum',
+        keterangan: ''
+    }, tbody.children.length, true));
+    updateRowCount();
+}
+
+async function saveAllData() {
     if (!currentSheet) {
         alert('❌ Pilih sheet terlebih dahulu');
         return;
     }
-    document.getElementById('storForm').reset();
-    openModal('storModal');
-}
-
-async function handleStorSubmit(e) {
-    e.preventDefault();
     
-    const jumlah = document.getElementById('storJumlah').value;
-    const keterangan = document.getElementById('storKeterangan').value;
+    const tbody = document.getElementById('tableBody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
     
-    const transaction = {
-        tanggal: formatDate(new Date()),
-        nama: `Stor - ${keterangan}`,
-        jenis: 'Stor',
-        harga: -Math.abs(parseInt(jumlah)),
-        status: 'Bayar',
-        keterangan: keterangan
-    };
+    const transactions = [];
+    const dates = [];
     
-    try {
-        const result = await API.addTransaction(currentSheet, transaction, token);
+    // Collect data
+    rows.forEach((tr, idx) => {
+        const inputs = tr.querySelectorAll('input, select');
+        const tanggal = inputs[0].value;
+        const nama = inputs[1].value;
+        const jenis = inputs[2].value;
+        const harga = inputs[3].value;
+        const status = tr.querySelector('.confirm-toggle').dataset.status;
+        const keterangan = inputs[4].value;
         
-        if (result.success) {
-            closeModal('storModal');
-            loadSheetData();
-            alert('✅ Stor berhasil disimpan');
-        } else {
-            alert('❌ ' + result.message);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Terjadi kesalahan');
+        // Skip empty rows
+        if (!nama && !jenis && !harga) return;
+        
+        transactions.push({
+            index: idx,
+            tanggal,
+            nama,
+            jenis,
+            harga: parseInt(harga) || 0,
+            status,
+            keterangan
+        });
+        
+        if (tanggal) dates.push({ index: idx, date: tanggal });
+    });
+    
+    // Auto-fill dates
+    if (dates.length >= 2) {
+        const firstDate = new Date(dates[0].date);
+        const lastIndex = dates[dates.length - 1].index;
+        
+        transactions.forEach(t => {
+            if (!t.tanggal && t.index >= dates[0].index && t.index <= lastIndex) {
+                const daysDiff = t.index - dates[0].index;
+                const autoDate = new Date(firstDate);
+                autoDate.setDate(autoDate.getDate() + daysDiff);
+                t.tanggal = formatDateForSave(autoDate);
+            }
+        });
     }
-}
-
-function openTransactionModal(editData = null, rowIndex = null) {
-    if (!currentSheet) {
-        alert('❌ Pilih sheet terlebih dahulu');
+    
+    // Validate
+    const invalid = transactions.find(t => !t.tanggal || !t.nama || !t.jenis);
+    if (invalid) {
+        alert('❌ Lengkapi data: Tanggal, Nama, dan Jenis wajib diisi');
         return;
     }
     
-    const form = document.getElementById('transactionForm');
-    const title = document.getElementById('transactionModalTitle');
-    
-    form.reset();
-    
-    if (editData) {
-        title.textContent = '✏️ Edit Transaksi';
-        document.getElementById('transactionRowIndex').value = rowIndex;
-        document.getElementById('transactionTanggal').value = editData.tanggal.split('-').reverse().join('-');
-        document.getElementById('transactionNama').value = editData.nama;
-        document.getElementById('transactionJenis').value = editData.jenis;
-        document.getElementById('transactionHarga').value = editData.harga;
-        document.getElementById('transactionStatus').value = editData.status;
-        document.getElementById('transactionKeterangan').value = editData.keterangan || '';
-    } else {
-        title.textContent = '➕ Tambah Transaksi';
-        document.getElementById('transactionRowIndex').value = '';
-        document.getElementById('transactionTanggal').value = new Date().toISOString().split('T')[0];
-    }
-    
-    openModal('transactionModal');
-}
-
-async function handleTransactionSubmit(e) {
-    e.preventDefault();
-    
-    const rowIndex = document.getElementById('transactionRowIndex').value;
-    const tanggalInput = document.getElementById('transactionTanggal').value;
-    const [year, month, day] = tanggalInput.split('-');
-    const tanggal = `${day}-${month}-${year}`;
-    
-    const transaction = {
-        tanggal,
-        nama: document.getElementById('transactionNama').value,
-        jenis: document.getElementById('transactionJenis').value,
-        harga: parseInt(document.getElementById('transactionHarga').value),
-        status: document.getElementById('transactionStatus').value,
-        keterangan: document.getElementById('transactionKeterangan').value
-    };
-    
+    // Save
     try {
-        let result;
-        
-        if (rowIndex) {
-            result = await API.updateTransaction(currentSheet, parseInt(rowIndex), transaction, token);
-        } else {
-            result = await API.addTransaction(currentSheet, transaction, token);
-        }
+        const result = await API.saveAllTransactions(currentSheet, transactions, token);
         
         if (result.success) {
-            closeModal('transactionModal');
+            alert('✅ Data berhasil disimpan!');
             loadSheetData();
-            alert('✅ ' + (rowIndex ? 'Transaksi diupdate' : 'Transaksi ditambahkan'));
         } else {
             alert('❌ ' + result.message);
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('❌ Terjadi kesalahan');
+        alert('❌ Terjadi kesalahan saat menyimpan');
     }
 }
 
-function editTransaction(index) {
-    openTransactionModal(currentTransactions[index], index);
+function updateRowCount() {
+    const tbody = document.getElementById('tableBody');
+    const count = tbody.querySelectorAll('tr').length;
+    document.getElementById('rowCount').textContent = `${count} baris`;
 }
 
-function deleteTransaction(index) {
-    deleteRowIndex = index;
-    openModal('deleteModal');
-}
-
-async function handleDeleteConfirm() {
-    if (deleteRowIndex === null) return;
-    
-    try {
-        const result = await API.deleteTransaction(currentSheet, deleteRowIndex, token);
-        
-        if (result.success) {
-            closeModal('deleteModal');
-            loadSheetData();
-            alert('✅ Transaksi dihapus');
-            deleteRowIndex = null;
-        } else {
-            alert('❌ ' + result.message);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Terjadi kesalahan');
+function convertDateToInput(dateStr) {
+    // Convert DD-MM-YYYY to YYYY-MM-DD
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
     }
+    return dateStr;
+}
+
+function formatDateForSave(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
 }
 
 function openModal(id) {
@@ -458,4 +451,3 @@ function openModal(id) {
 function closeModal(id) {
     document.getElementById(id)?.classList.remove('show');
 }
-
