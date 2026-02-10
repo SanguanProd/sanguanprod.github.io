@@ -3,62 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Data Pulsa - Sanguanprod</title>
+    <title>Admin Data Pulsa</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="datapulsa-body">
     <div class="stars"></div>
     <div class="stars2"></div>
     
-    <!-- Header -->
     <header class="dp-header">
-        <button id="backBtn" class="back-btn">
-            <span>←</span>
-        </button>
+        <button id="backBtn" class="back-btn"><span>←</span></button>
         <div class="header-info">
             <h1>⚙️ ADMIN PANEL</h1>
             <p>Data Pulsa Management</p>
         </div>
     </header>
 
-    <!-- Add Project Section -->
+    <!-- Create Sheet for User -->
     <section class="admin-section">
         <div class="admin-card">
             <div class="admin-card-header">
-                <h3>➕ Tambah Project Baru</h3>
+                <h3>➕ Buat Sheet untuk User</h3>
             </div>
-            <form id="addProjectForm" class="admin-form">
+            <form id="adminCreateSheetForm" class="admin-form">
                 <div class="form-group">
                     <label>Username</label>
-                    <input type="text" id="projectUsername" required placeholder="Masukkan username">
-                    <small>Username harus sudah terdaftar di sistem</small>
+                    <input type="text" id="adminUsername" required placeholder="Contoh: user1">
                 </div>
-                
                 <div class="form-group">
-                    <label>Link Spreadsheet</label>
-                    <input type="url" id="projectSpreadsheet" required 
-                           placeholder="https://docs.google.com/spreadsheets/d/...">
-                    <small>User harus share spreadsheet dengan "Anyone with link can edit"</small>
+                    <label>Nama Sheet</label>
+                    <input type="text" id="adminSheetName" required placeholder="Contoh: Januari">
+                    <small>Format: <strong>username_namasheet</strong></small>
                 </div>
-                
-                <button type="submit" class="btn-submit-admin">
-                    <span>Tambah Project</span>
-                </button>
+                <button type="submit" class="btn-submit-admin">Buat Sheet</button>
             </form>
         </div>
     </section>
 
-    <!-- Projects List Section -->
+    <!-- All Sheets List -->
     <section class="admin-section">
         <div class="admin-card">
             <div class="admin-card-header">
-                <h3>📋 Daftar Project</h3>
-                <button id="refreshProjectsBtn" class="btn-refresh">
-                    <span>🔄 Refresh</span>
-                </button>
+                <h3>📋 Semua Sheet</h3>
+                <button id="refreshBtn" class="btn-refresh">🔄 Refresh</button>
             </div>
-            
-            <div id="projectsList" class="projects-list">
+            <div id="allSheetsList" class="all-sheets-list">
                 <div class="loading-state">
                     <div class="loader"></div>
                     <p>Memuat data...</p>
@@ -67,117 +55,49 @@
         </div>
     </section>
 
-    <!-- Modal: View/Edit User Data -->
-    <div id="userDataModal" class="modal">
+    <!-- Modal: View Sheet Data -->
+    <div id="viewSheetModal" class="modal">
         <div class="modal-content modal-large">
             <div class="modal-header">
-                <h3 id="userDataTitle">👤 Data User</h3>
-                <button class="close-modal" data-modal="userDataModal">×</button>
+                <h3 id="viewSheetTitle">📊 Data Sheet</h3>
+                <button class="close-modal" data-modal="viewSheetModal">×</button>
             </div>
-            
             <div class="modal-body">
-                <!-- Summary -->
                 <div class="user-summary">
                     <div class="summary-item-admin">
-                        <span class="label">Total Uang:</span>
-                        <span class="value" id="adminTotalUang">Rp 0</span>
+                        <span class="label">Total:</span>
+                        <span class="value" id="adminTotal">Rp 0</span>
                     </div>
                     <div class="summary-item-admin">
-                        <span class="label">Jumlah Utang:</span>
-                        <span class="value" id="adminJumlahUtang">Rp 0</span>
+                        <span class="label">Utang:</span>
+                        <span class="value" id="adminUtang">Rp 0</span>
                     </div>
                     <div class="summary-item-admin">
-                        <span class="label">Sisa Uang:</span>
-                        <span class="value" id="adminSisaUang">Rp 0</span>
+                        <span class="label">Sisa:</span>
+                        <span class="value" id="adminSisa">Rp 0</span>
                     </div>
                 </div>
-
-                <!-- Filter -->
+                
                 <div class="admin-filter">
-                    <select id="adminFilterStatus" class="filter-select">
+                    <select id="adminFilter" class="filter-select">
                         <option value="semua">Semua</option>
                         <option value="belum">Belum Bayar</option>
                         <option value="bayar">Sudah Bayar</option>
                     </select>
                 </div>
-
-                <!-- Transactions -->
-                <div id="adminTransactionsList" class="admin-transactions-list">
-                    <p>Tidak ada transaksi</p>
-                </div>
-
-                <!-- Add Transaction for User -->
-                <button id="adminAddTransactionBtn" class="btn-submit-admin">
-                    ➕ Tambah Transaksi untuk User
-                </button>
+                
+                <div id="adminTransactionsList" class="admin-transactions-list"></div>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal: Admin Add/Edit Transaction -->
-    <div id="adminTransactionModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="adminTransactionModalTitle">➕ Tambah Transaksi</h3>
-                <button class="close-modal" data-modal="adminTransactionModal">×</button>
-            </div>
-            <form id="adminTransactionForm" class="modal-form">
-                <input type="hidden" id="adminTransactionRowIndex">
-                <input type="hidden" id="adminTransactionUsername">
-                
-                <div class="form-group">
-                    <label>Tanggal</label>
-                    <input type="date" id="adminTransactionTanggal" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Nama</label>
-                    <input type="text" id="adminTransactionNama" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Jenis</label>
-                    <input type="text" id="adminTransactionJenis" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Harga</label>
-                    <input type="number" id="adminTransactionHarga" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="adminTransactionStatus" required>
-                        <option value="Belum">Belum Bayar</option>
-                        <option value="Bayar">Sudah Bayar</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Keterangan</label>
-                    <textarea id="adminTransactionKeterangan" rows="3"></textarea>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn-cancel" data-modal="adminTransactionModal">Batal</button>
-                    <button type="submit" class="btn-submit">Simpan</button>
-                </div>
-            </form>
         </div>
     </div>
 
     <script src="config.js"></script>
     <script>
-        // Check if user is admin
-        const role = localStorage.getItem('role');
-        const token = localStorage.getItem('session_token');
-        
-        if (!token || role !== 'admin') {
+        if (localStorage.getItem('role') !== 'admin') {
             alert('Hanya admin yang dapat mengakses halaman ini');
             window.location.href = '../dashboard.html';
         }
     </script>
-    <script src="script.js"></script>
     <script src="admin.js"></script>
 </body>
 </html>
