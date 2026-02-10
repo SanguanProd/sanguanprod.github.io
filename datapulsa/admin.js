@@ -1,5 +1,48 @@
 // Admin Panel Script
 
+// ========== CONFIG (INLINE) ==========
+const CONFIG = {
+    API_URL: 'YOUR_DATAPULSA_APPS_SCRIPT_URL_HERE',
+    SPREADSHEET_ID: '1AHkRaRjdYbW2HlKx6_nfXk7HK0cR5CRnqoqJtHbEelw',
+};
+
+const API = {
+    async call(action, data = {}) {
+        try {
+            const response = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ action, ...data })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            return { success: false, message: 'Koneksi gagal' };
+        }
+    },
+    async getAllSheets(token) {
+        return await this.call('getAllSheets', { token });
+    },
+    async createSheet(username, sheetName, token) {
+        return await this.call('createSheet', { username, sheetName, token });
+    },
+    async getTransactions(sheetName, token) {
+        return await this.call('getTransactions', { sheetName, token });
+    },
+    async getSummary(sheetName, token) {
+        return await this.call('getSummary', { sheetName, token });
+    }
+};
+
+function formatRupiah(number) {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(number);
+}
+// ========== END CONFIG ==========
+
 const token = localStorage.getItem('session_token');
 const role = localStorage.getItem('role');
 
