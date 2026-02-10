@@ -30,6 +30,16 @@ function initDataPulsa() {
     updateHeaderTime();
     setInterval(updateHeaderTime, 1000);
     
+    // Mobile logout button
+    const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+    if (mobileLogoutBtn) {
+        mobileLogoutBtn.addEventListener('click', () => {
+            if (confirm('Apakah Anda yakin ingin keluar?')) {
+                localStorage.clear();
+                window.location.href = '../login.html';
+            }
+        });
+    }
     // Back button
     const backBtn = document.getElementById('backBtn');
     if (backBtn) {
@@ -391,3 +401,4 @@ function showSuccess(message) {
 function showError(message) {
     alert('❌ ' + message);
 }
+
