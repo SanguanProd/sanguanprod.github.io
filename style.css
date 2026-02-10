@@ -1315,3 +1315,21 @@ body {
         font-size: 1.3rem;
     }
 }
+
+.mobile-logout-btn-dashboard {
+    display: none;
+    background: rgba(255, 110, 199, 0.2);
+    border: 1px solid rgba(255, 110, 199, 0.5);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--accent-pink);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .mobile-logout-btn-dashboard {
+        display: block;
+    }
+}
