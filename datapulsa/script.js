@@ -2,7 +2,7 @@
 
 // ========== CONFIG (INLINE) ==========
 const CONFIG = {
-    API_URL: 'YOUR_DATAPULSA_APPS_SCRIPT_URL_HERE',
+    API_URL: 'https://script.google.com/macros/s/AKfycbxm6qwWstFfkaaaBTfcC4SZ1I8GU82MFnChgEHbjZJG2IbueZDL_4nhd_qsEZJYJ8OKWQ/exec',
     SPREADSHEET_ID: '1AHkRaRjdYbW2HlKx6_nfXk7HK0cR5CRnqoqJtHbEelw',
     SESSION_TIMEOUT: 24 * 60 * 60 * 1000,
     ROLES: { ADMIN: 'admin', USER: 'user' }
@@ -458,3 +458,4 @@ function openModal(id) {
 function closeModal(id) {
     document.getElementById(id)?.classList.remove('show');
 }
+
