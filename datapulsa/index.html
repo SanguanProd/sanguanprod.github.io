@@ -20,7 +20,27 @@
             <p id="currentUser"></p>
         </div>
         <div class="header-time" id="headerTime"></div>
-    </header>
+        <button id="adminPanelBtn" class="back-btn" style="display: none;" onclick="window.location.href='admin.html'">
+        <span>⚙️</span>
+    </button>
+    
+    <div class="header-time" id="headerTime"></div>
+<header class="dp-header">
+    <button id="backBtn" class="back-btn">
+        <span>←</span>
+    </button>
+    <div class="header-info">
+        <h1>💰 DATA PULSA</h1>
+        <p id="currentUser"></p>
+    </div>
+    
+    <!-- TAMBAHKAN TOMBOL LOGOUT MOBILE -->
+    <button id="mobileLogoutBtn" class="mobile-logout-btn">
+        <span>🚪</span>
+    </button>
+    
+    <div class="header-time" id="headerTime"></div>
+</header>
 
     <!-- Summary Card -->
     <section class="summary-section">
@@ -49,6 +69,8 @@
                 </div>
             </div>
         </div>
+
+        
 
         <!-- Action Buttons -->
         <div class="action-buttons">
@@ -180,7 +202,11 @@
             </div>
         </div>
     </div>
-
+<script>
+if (localStorage.getItem('role') === 'admin') {
+    document.getElementById('adminPanelBtn').style.display = 'flex';
+}
+</script>
     <script src="config.js"></script>
     <script src="script.js"></script>
 </body>
