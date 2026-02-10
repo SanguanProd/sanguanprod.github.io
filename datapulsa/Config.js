@@ -1,24 +1,21 @@
-// Configuration file for Data Pulsa
+// Configuration for Data Pulsa - Single Spreadsheet System
 
 const CONFIG = {
-    // Ganti URL ini dengan URL Google Apps Script Web App khusus Data Pulsa
-    // Format: https://script.google.com/macros/s/SCRIPT_ID/exec
-    API_URL: 'https://script.google.com/macros/s/AKfycbyTOTVdzEz8NtwtYDl5UvD11_ZYXf-fenUGO9OMVNY7sseRcxLlQs1RbUcPXFHhFM6s8Q/exec',
+    // Ganti dengan URL Google Apps Script deployment
+    API_URL: 'https://script.google.com/macros/s/AKfycbwkvR0gks4tgW0F1lmgmSMXIu-q4u-cmG6EMDXU7yIdVzsQGjZxJi0u-_X1KzRtWJLaqw/exec',
     
-    // Spreadsheet ID Admin (sama dengan yang utama)
-    ADMIN_SPREADSHEET_ID: '1AHkRaRjdYbW2HlKx6_nfXk7HK0cR5CRnqoqJtHbEelw',
+    // Spreadsheet ID (sama dengan spreadsheet utama)
+    SPREADSHEET_ID: '1AHkRaRjdYbW2HlKx6_nfXk7HK0cR5CRnqoqJtHbEelw',
     
-    // Session timeout (dalam milidetik) - 24 jam
     SESSION_TIMEOUT: 24 * 60 * 60 * 1000,
     
-    // Role types
     ROLES: {
         ADMIN: 'admin',
         USER: 'user'
     }
 };
 
-// Fungsi helper untuk API calls
+// API Helper
 const API = {
     async call(action, data = {}) {
         try {
@@ -41,44 +38,44 @@ const API = {
         }
     },
     
-    // Get user's spreadsheet URL
-    async getUserSpreadsheet(username, token) {
-        return await this.call('getUserSpreadsheet', { username, token });
+    // Get user's sheets
+    async getUserSheets(username, token) {
+        return await this.call('getUserSheets', { username, token });
     },
     
-    // Add new user project (admin only)
-    async addUserProject(username, spreadsheetUrl, token) {
-        return await this.call('addUserProject', { username, spreadsheetUrl, token });
+    // Get all sheets (admin only)
+    async getAllSheets(token) {
+        return await this.call('getAllSheets', { token });
     },
     
-    // Get all user projects (admin only)
-    async getAllProjects(token) {
-        return await this.call('getAllProjects', { token });
+    // Create new sheet
+    async createSheet(username, sheetName, token) {
+        return await this.call('createSheet', { username, sheetName, token });
     },
     
-    // Get transactions from user spreadsheet
-    async getTransactions(username, token) {
-        return await this.call('getTransactions', { username, token });
+    // Get transactions from sheet
+    async getTransactions(sheetName, token) {
+        return await this.call('getTransactions', { sheetName, token });
     },
     
     // Add transaction
-    async addTransaction(username, transaction, token) {
-        return await this.call('addTransaction', { username, transaction, token });
+    async addTransaction(sheetName, transaction, token) {
+        return await this.call('addTransaction', { sheetName, transaction, token });
     },
     
     // Update transaction
-    async updateTransaction(username, rowIndex, transaction, token) {
-        return await this.call('updateTransaction', { username, rowIndex, transaction, token });
+    async updateTransaction(sheetName, rowIndex, transaction, token) {
+        return await this.call('updateTransaction', { sheetName, rowIndex, transaction, token });
     },
     
     // Delete transaction
-    async deleteTransaction(username, rowIndex, token) {
-        return await this.call('deleteTransaction', { username, rowIndex, token });
+    async deleteTransaction(sheetName, rowIndex, token) {
+        return await this.call('deleteTransaction', { sheetName, rowIndex, token });
     },
     
-    // Get summary (total, utang, sisa)
-    async getSummary(username, token) {
-        return await this.call('getSummary', { username, token });
+    // Get summary
+    async getSummary(sheetName, token) {
+        return await this.call('getSummary', { sheetName, token });
     }
 };
 
@@ -98,8 +95,3 @@ function formatDate(date) {
     const year = d.getFullYear();
     return `${day}-${month}-${year}`;
 }
-
-function parseRupiah(rupiah) {
-    return parseInt(rupiah.replace(/[^0-9-]/g, '')) || 0;
-}
-
