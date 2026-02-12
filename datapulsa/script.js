@@ -2,7 +2,7 @@
 
 // ========== CONFIG (INLINE) ==========
 const CONFIG = {
-    API_URL: 'YOUR_DATAPULSA_APPS_SCRIPT_URL_HERE',
+    API_URL: 'https://script.google.com/macros/s/AKfycbwRafiiUzRt6yo8GxV2d0pG4VS64LBj8Mb9qnDUSVQDTGVEcZcB6E2TffXh3_vfopPHbQ/exec',
     SPREADSHEET_ID: '1AHkRaRjdYbW2HlKx6_nfXk7HK0cR5CRnqoqJtHbEelw',
     JENIS_OPTIONS: ['Pulsa', 'Kuota', 'Transfer', 'E-Wallet', 'Topup']
 };
