@@ -7,6 +7,7 @@ const CONFIG = {
     JENIS_OPTIONS: ['Pulsa', 'Kuota', 'Transfer', 'E-Wallet', 'Topup']
 };
 
+
 const API = {
     async call(action, data = {}) {
         try {
@@ -91,6 +92,7 @@ function initDataPulsa() {
     document.getElementById('createSheetBtn')?.addEventListener('click', openCreateSheetModal);
     document.getElementById('createSheetForm')?.addEventListener('submit', handleCreateSheet);
     
+    document.getElementById('loadDataBtn')?.addEventListener('click', loadDataToTable);
     document.getElementById('addRowBtn')?.addEventListener('click', addNewRow);
     document.getElementById('saveAllBtn')?.addEventListener('click', saveAllData);
     
@@ -183,24 +185,19 @@ async function loadSheetData() {
     showDataSections();
     
     try {
-        const [transResult, summaryResult] = await Promise.all([
-            API.getTransactions(currentSheet, token),
-            API.getSummary(currentSheet, token)
-        ]);
-        
-        if (transResult.success) {
-            tableRows = transResult.transactions || [];
-            renderTable();
-        } else {
-            tableRows = [];
-            renderTable();
-        }
+        // Hanya load summary, TIDAK load transaksi
+        const summaryResult = await API.getSummary(currentSheet, token);
         
         if (summaryResult.success) {
             updateSummary(summaryResult.summary);
         } else {
             updateSummary({ total: 0, utang: 0, sisa: 0 });
         }
+        
+        // Render tabel kosong untuk input baru
+        tableRows = [];
+        renderEmptyTable();
+        
     } catch (error) {
         console.error('Error:', error);
         alert('❌ Gagal memuat data');
@@ -245,6 +242,47 @@ function renderTable() {
     }
     
     updateRowCount();
+}
+
+function renderEmptyTable() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    
+    // Hanya 10 baris kosong untuk input baru
+    for (let i = 0; i < 10; i++) {
+        tbody.appendChild(createTableRow({
+            tanggal: '',
+            nama: '',
+            jenis: '',
+            harga: '',
+            status: 'Belum',
+            keterangan: ''
+        }, i, true));
+    }
+    
+    updateRowCount();
+}
+
+async function loadDataToTable() {
+    if (!currentSheet) {
+        alert('❌ Pilih sheet terlebih dahulu');
+        return;
+    }
+    
+    try {
+        const transResult = await API.getTransactions(currentSheet, token);
+        
+        if (transResult.success) {
+            tableRows = transResult.transactions || [];
+            renderTable(); // Render data yang ada + 10 baris kosong
+            alert('✅ Data berhasil dimuat!');
+        } else {
+            alert('❌ ' + transResult.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Gagal memuat data');
+    }
 }
 
 function createTableRow(data, index, isNew = false) {
@@ -412,7 +450,17 @@ async function saveAllData() {
         
         if (result.success) {
             alert('✅ Data berhasil disimpan!');
-            loadSheetData();
+            
+            // Reload summary
+            const summaryResult = await API.getSummary(currentSheet, token);
+            if (summaryResult.success) {
+                updateSummary(summaryResult.summary);
+            }
+            
+            // Clear table - kembali ke mode input baru
+            tableRows = [];
+            renderEmptyTable();
+            
         } else {
             alert('❌ ' + result.message);
         }
