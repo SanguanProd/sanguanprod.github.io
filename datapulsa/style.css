@@ -247,7 +247,8 @@ body.datapulsa-body {
 }
 
 .btn-add-row,
-.btn-save-all {
+.btn-save-all,
+.btn-load-data {
     padding: 10px 20px;
     border: none;
     border-radius: 8px;
@@ -256,6 +257,17 @@ body.datapulsa-body {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+}
+
+.btn-load-data {
+    background: rgba(0, 255, 159, 0.2);
+    border: 1px solid rgba(0, 255, 159, 0.5);
+    color: var(--accent-green);
+}
+
+.btn-load-data:hover {
+    background: rgba(0, 255, 159, 0.3);
+    transform: translateY(-2px);
 }
 
 .btn-add-row {
