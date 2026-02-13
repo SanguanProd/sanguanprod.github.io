@@ -26,6 +26,7 @@
 
     <title>Data Pulsa - Sanguanprod</title>
     <link rel="stylesheet" href="style.css">
+
 </head>
 <body class="datapulsa-body">
     <div class="stars"></div>
@@ -101,8 +102,9 @@
             <div class="table-header">
                 <h3>📊 Input Data Transaksi</h3>
                 <div class="table-actions">
+                    <button id="loadDataBtn" class="btn-load-data">📊 Muat Data</button>
                     <button id="addRowBtn" class="btn-add-row">➕ Tambah Baris</button>
-                    <button id="saveAllBtn" class="btn-save-all">💾 Simpan Semua</button>
+                    <button id="saveAllBtn" class="btn-save-all">💾 Simpan</button>
                 </div>
             </div>
             
@@ -127,7 +129,7 @@
             
             <div class="table-footer">
                 <span id="rowCount">0 baris</span>
-                <span class="table-tip">💡 Tip: Isi tanggal pertama dan terakhir, yang tengah auto-fill saat save</span>
+                <span class="table-tip">💡 Klik "📊 Muat Data" untuk edit data lama | Klik "💾 Simpan" untuk save data baru</span>
             </div>
         </div>
     </section>
@@ -156,4 +158,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
