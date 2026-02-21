@@ -5,31 +5,32 @@ const CONFIG = {
     SPREADSHEET_ID: '1AHkRaRjdYbW2HlKx6_nfXk7HK0cR5CRnqoqJtHbEelw',
     
     PULSA_PRICE: {
-        '5k': {asli: 5000, jual: 8000},
-        '10k': {asli: 10000, jual: 13000},
-        '15k': {asli: 15000, jual: 18000},
-        '20k': {asli: 20000, jual: 23000},
-        '25k': {asli: 25000, jual: 28000},
-        '30k': {asli: 30000, jual: 33000},
-        '45k': {asli: 45000, jual: 48000},
-        '50k': {asli: 50000, jual: 53000},
-        '55k': {asli: 55000, jual: 58000},
-        '60k': {asli: 60000, jual: 63000},
-        '65k': {asli: 65000, jual: 68000},
-        '70k': {asli: 70000, jual: 73000},
-        '75k': {asli: 75000, jual: 78000},
-        '80k': {asli: 80000, jual: 83000},
-        '85k': {asli: 85000, jual: 88000},
-        '90k': {asli: 90000, jual: 93000},
-        '95k': {asli: 95000, jual: 98000},
-        '100k': {asli: 100000, jual: 103000},
-        '150k': {asli: 150000, jual: 153000}
+'5k': {asli: 5500, jual: 8000},
+'10k': {asli: 10500, jual: 13000},
+'15k': {asli: 15500, jual: 18000},
+'20k': {asli: 20500, jual: 23000},
+'25k': {asli: 25500, jual: 28000},
+'30k': {asli: 30500, jual: 33000},
+'45k': {asli: 45500, jual: 48000},
+'50k': {asli: 50500, jual: 53000},
+'55k': {asli: 55500, jual: 58000},
+'60k': {asli: 60500, jual: 63000},
+'65k': {asli: 65500, jual: 68000},
+'70k': {asli: 70500, jual: 73000},
+'75k': {asli: 75500, jual: 78000},
+'80k': {asli: 80500, jual: 83000},
+'85k': {asli: 85500, jual: 88000},
+'90k': {asli: 90500, jual: 93000},
+'95k': {asli: 95500, jual: 98000},
+'100k': {asli: 100500, jual: 103000},
+'150k': {asli: 150500, jual: 153000}
+
     },
     
     TOKEN_PRICE: {
-        '20k': {asli: 20000, jual: 23000},
-        '50k': {asli: 50000, jual: 53000},
-        '100k': {asli: 100000, jual: 103000}
+        '20k': {asli: 20800, jual: 23000},
+        '50k': {asli: 50800, jual: 53000},
+        '100k': {asli: 100800, jual: 103000}
     }
 };
 
@@ -470,3 +471,4 @@ function openModal(id) {
 function closeModal(id) {
     document.getElementById(id)?.classList.remove('show');
 }
+
