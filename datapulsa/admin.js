@@ -1,9 +1,8 @@
-// Admin Panel Script
+// Admin Panel V2
 
-// ========== CONFIG (INLINE) ==========
 const CONFIG = {
-    API_URL: 'https://script.google.com/macros/s/AKfycbxm6qwWstFfkaaaBTfcC4SZ1I8GU82MFnChgEHbjZJG2IbueZDL_4nhd_qsEZJYJ8OKWQ/exec',
-    SPREADSHEET_ID: '1AHkRaRjdYbW2HlKx6_nfXk7HK0cR5CRnqoqJtHbEelw',
+    API_URL: 'https://script.google.com/macros/s/AKfycbwYIm4bfNT4qZWvlGCpWsDkMV5ko-RQa7wyVvHolcrGXX1iRyYeGiJJ_j_kRubhGJgfUw/exec',
+    SPREADSHEET_ID: '1AHkRaRjdYbW2HlKx6_nfXk7HK0cR5CRnqoqJtHbEelw'
 };
 
 const API = {
@@ -27,10 +26,10 @@ const API = {
         return await this.call('createSheet', { username, sheetName, token });
     },
     async getTransactions(sheetName, token) {
-        return await this.call('getTransactions', { sheetName, token });
+        return await this.call('getTransactionsV2', { sheetName, token });
     },
     async getSummary(sheetName, token) {
-        return await this.call('getSummary', { sheetName, token });
+        return await this.call('getSummaryV2', { sheetName, token });
     }
 };
 
@@ -41,15 +40,17 @@ function formatRupiah(number) {
         minimumFractionDigits: 0
     }).format(number);
 }
-// ========== END CONFIG ==========
 
 const token = localStorage.getItem('session_token');
 const role = localStorage.getItem('role');
 
+if (!token || role !== 'admin') {
+    alert('Hanya admin yang dapat mengakses');
+    window.location.href = '../dashboard.html';
+}
+
 let allSheets = [];
 let selectedSheet = null;
-let adminTransactions = [];
-let adminFilter = 'semua';
 
 document.addEventListener('DOMContentLoaded', () => {
     initAdmin();
@@ -62,10 +63,6 @@ function initAdmin() {
     
     document.getElementById('adminCreateSheetForm')?.addEventListener('submit', handleAdminCreateSheet);
     document.getElementById('refreshBtn')?.addEventListener('click', loadAllSheets);
-    document.getElementById('adminFilter')?.addEventListener('change', (e) => {
-        adminFilter = e.target.value;
-        renderAdminTransactions();
-    });
     
     document.querySelectorAll('.close-modal').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -84,7 +81,7 @@ async function handleAdminCreateSheet(e) {
     const sheetName = document.getElementById('adminSheetName').value.trim();
     
     if (!username || !sheetName) {
-        alert('❌ Mohon lengkapi semua field');
+        alert('❌ Lengkapi semua field');
         return;
     }
     
@@ -92,7 +89,7 @@ async function handleAdminCreateSheet(e) {
         const result = await API.createSheet(username, sheetName, token);
         
         if (result.success) {
-            alert('✅ Sheet berhasil dibuat!');
+            alert('✅ Sheet dibuat!');
             document.getElementById('adminCreateSheetForm').reset();
             loadAllSheets();
         } else {
@@ -100,13 +97,13 @@ async function handleAdminCreateSheet(e) {
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('❌ Terjadi kesalahan');
+        alert('❌ Error');
     }
 }
 
 async function loadAllSheets() {
     const list = document.getElementById('allSheetsList');
-    list.innerHTML = '<div class="loading-state"><div class="loader"></div><p>Memuat data...</p></div>';
+    list.innerHTML = '<div class="loading-state"><div class="loader"></div><p>Memuat...</p></div>';
     
     try {
         const result = await API.getAllSheets(token);
@@ -119,7 +116,7 @@ async function loadAllSheets() {
         }
     } catch (error) {
         console.error('Error:', error);
-        list.innerHTML = '<div class="empty-state"><p>Terjadi kesalahan</p></div>';
+        list.innerHTML = '<div class="empty-state"><p>Error loading</p></div>';
     }
 }
 
@@ -158,7 +155,7 @@ async function viewSheet(sheetName) {
     selectedSheet = sheetName;
     
     document.getElementById('viewSheetTitle').textContent = `📊 ${sheetName}`;
-    document.getElementById('adminTransactionsList').innerHTML = '<div class="loading-state"><div class="loader"></div><p>Memuat...</p></div>';
+    document.getElementById('adminTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;">Memuat...</td></tr>';
     
     openModal('viewSheetModal');
     
@@ -169,10 +166,9 @@ async function viewSheet(sheetName) {
         ]);
         
         if (transResult.success) {
-            adminTransactions = transResult.transactions || [];
-            renderAdminTransactions();
+            renderAdminTransactions(transResult.transactions || []);
         } else {
-            document.getElementById('adminTransactionsList').innerHTML = '<div class="empty-state"><p>Gagal memuat transaksi</p></div>';
+            document.getElementById('adminTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;">Error</td></tr>';
         }
         
         if (summaryResult.success) {
@@ -180,46 +176,34 @@ async function viewSheet(sheetName) {
             document.getElementById('adminTotal').textContent = formatRupiah(s.total || 0);
             document.getElementById('adminUtang').textContent = formatRupiah(s.utang || 0);
             document.getElementById('adminSisa').textContent = formatRupiah(s.sisa || 0);
+            document.getElementById('adminIncome').textContent = formatRupiah(s.income || 0);
         }
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById('adminTransactionsList').innerHTML = '<div class="empty-state"><p>Terjadi kesalahan</p></div>';
+        document.getElementById('adminTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;">Error</td></tr>';
     }
 }
 
-function renderAdminTransactions() {
-    const list = document.getElementById('adminTransactionsList');
+function renderAdminTransactions(transactions) {
+    const tbody = document.getElementById('adminTableBody');
     
-    let filtered = adminTransactions;
-    if (adminFilter === 'belum') filtered = adminTransactions.filter(t => t.status === 'Belum');
-    else if (adminFilter === 'bayar') filtered = adminTransactions.filter(t => t.status === 'Bayar');
-    
-    if (filtered.length === 0) {
-        list.innerHTML = '<div class="empty-state"><p>Tidak ada transaksi</p></div>';
+    if (transactions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;">Belum ada transaksi</td></tr>';
         return;
     }
     
-    list.innerHTML = filtered.map(t => {
-        const harga = parseInt(t.harga) || 0;
-        const priceClass = harga >= 0 ? 'price-positive' : 'price-negative';
-        const statusClass = t.status === 'Bayar' ? 'status-bayar' : 'status-belum';
-        const statusIcon = t.status === 'Bayar' ? '✅' : '❌';
-        
-        return `
-            <div class="transaction-card">
-                <div class="transaction-header">
-                    <span class="transaction-date">📅 ${t.tanggal}</span>
-                    <span class="transaction-status ${statusClass}">${statusIcon} ${t.status}</span>
-                </div>
-                <div class="transaction-info">
-                    <div class="transaction-name">${t.nama}</div>
-                    <div class="transaction-jenis">${t.jenis}</div>
-                </div>
-                <div class="transaction-price ${priceClass}">${formatRupiah(harga)}</div>
-                ${t.keterangan ? `<div class="transaction-keterangan">${t.keterangan}</div>` : ''}
-            </div>
-        `;
-    }).join('');
+    tbody.innerHTML = transactions.map(t => `
+        <tr>
+            <td>${t.tanggal}</td>
+            <td>${t.nama}</td>
+            <td>${t.jenis}</td>
+            <td>${t.nominal}</td>
+            <td>${formatRupiah(t.harga_asli || 0)}</td>
+            <td>${formatRupiah(t.harga_jual || 0)}</td>
+            <td><span class="status-badge status-${t.status.toLowerCase()}">${t.status === 'Bayar' ? '✅' : '❌'}</span></td>
+            <td>${t.keterangan || '-'}</td>
+        </tr>
+    `).join('');
 }
 
 function openModal(id) {
@@ -229,4 +213,3 @@ function openModal(id) {
 function closeModal(id) {
     document.getElementById(id)?.classList.remove('show');
 }
-
