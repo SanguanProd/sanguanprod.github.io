@@ -461,6 +461,9 @@ body.datapulsa-body {
     padding: 20px;
     margin-bottom: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
 }
 
 .summary-item {
@@ -471,7 +474,6 @@ body.datapulsa-body {
     background: rgba(15, 20, 25, 0.6);
     border: 1px solid rgba(137, 207, 240, 0.2);
     border-radius: 10px;
-    margin-bottom: 12px;
     transition: all 0.3s ease;
 }
 
@@ -500,6 +502,14 @@ body.datapulsa-body {
 
 .summary-item.sisa .summary-icon {
     filter: drop-shadow(0 0 8px var(--accent-green));
+}
+
+.summary-item.income .summary-icon {
+    filter: drop-shadow(0 0 8px #FFD700);
+}
+
+.summary-item.income .summary-value {
+    color: #FFD700;
 }
 
 .summary-details {
