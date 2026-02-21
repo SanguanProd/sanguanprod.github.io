@@ -3,66 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json">
-    
-    <!-- Theme Color -->
-    <meta name="theme-color" content="#89CFF0">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/icons/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
-    
-    <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="/icons/apple-icon-180.png">
-    
-    <!-- PWA Metadata -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Sanguanprod">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Sanguanprod">
-
     <title>Data Pulsa - Sanguanprod</title>
     <link rel="stylesheet" href="style.css">
-
 </head>
 <body class="datapulsa-body">
     <div class="stars"></div>
     <div class="stars2"></div>
     
-    <!-- Header -->
     <header class="dp-header">
-        <button id="backBtn" class="back-btn">
-            <span>←</span>
-        </button>
+        <button id="backBtn" class="back-btn"><span>←</span></button>
         <div class="header-info">
             <h1>💰 DATA PULSA</h1>
             <p id="currentUser"></p>
         </div>
-        <button id="mobileLogoutBtn" class="mobile-logout-btn">
-            <span>🚪</span>
-        </button>
+        <button id="mobileLogoutBtn" class="mobile-logout-btn"><span>🚪</span></button>
         <div class="header-time" id="headerTime"></div>
     </header>
 
-    <!-- Sheet Selector -->
     <section class="sheet-selector-section">
         <div class="sheet-selector-card">
-            <label for="sheetSelect">Pilih Data Sheet:</label>
+            <label>Pilih Data Sheet:</label>
             <div class="select-group">
                 <select id="sheetSelect" class="sheet-select">
                     <option value="">-- Pilih Sheet --</option>
                 </select>
-                <button id="createSheetBtn" class="btn-create-sheet">
-                    ➕ Buat Baru
-                </button>
+                <button id="createSheetBtn" class="btn-create-sheet">➕ Buat Baru</button>
             </div>
         </div>
     </section>
 
-    <!-- Summary Card -->
     <section class="summary-section" id="summarySection" style="display: none;">
         <div class="summary-card">
             <div class="summary-item total">
@@ -72,7 +41,6 @@
                     <span class="summary-value" id="totalUang">Rp 0</span>
                 </div>
             </div>
-            
             <div class="summary-item utang">
                 <span class="summary-icon">⚠️</span>
                 <div class="summary-details">
@@ -80,7 +48,6 @@
                     <span class="summary-value" id="jumlahUtang">Rp 0</span>
                 </div>
             </div>
-            
             <div class="summary-item sisa">
                 <span class="summary-icon">✅</span>
                 <div class="summary-details">
@@ -88,48 +55,46 @@
                     <span class="summary-value" id="sisaUang">Rp 0</span>
                 </div>
             </div>
+            <div class="summary-item income">
+                <span class="summary-icon">📈</span>
+                <div class="summary-details">
+                    <span class="summary-label">Income</span>
+                    <span class="summary-value" id="income">Rp 0</span>
+                </div>
+            </div>
         </div>
 
-        <!-- Info Text -->
-        <div class="info-text">
-            <p>📝 Input transaksi langsung di tabel di bawah</p>
+        <div class="action-buttons">
+            <button id="btnMasuk" class="action-btn masuk-btn">
+                <span class="btn-icon">💰</span>
+                <span>Uang Masuk</span>
+            </button>
+            <button id="btnKeluar" class="action-btn keluar-btn">
+                <span class="btn-icon">💸</span>
+                <span>Uang Keluar</span>
+            </button>
         </div>
     </section>
 
-    <!-- Transactions Table Section -->
     <section class="transactions-section" id="transactionsSection" style="display: none;">
         <div class="table-container">
-            <div class="table-header">
-                <h3>📊 Input Data Transaksi</h3>
-                <div class="table-actions">
-                    <button id="loadDataBtn" class="btn-load-data">📊 Muat Data</button>
-                    <button id="addRowBtn" class="btn-add-row">➕ Tambah Baris</button>
-                    <button id="saveAllBtn" class="btn-save-all">💾 Simpan</button>
-                </div>
-            </div>
-            
             <div class="table-scroll">
-                <table id="transactionTable" class="transaction-table">
+                <table class="transaction-table">
                     <thead>
                         <tr>
-                            <th>TANGGAL</th>
-                            <th>NAMA</th>
-                            <th>JENIS</th>
-                            <th>HARGA</th>
-                            <th>KONFIRMASI</th>
-                            <th>KET</th>
-                            <th>❌</th>
+                            <th>Tanggal</th>
+                            <th>Nama</th>
+                            <th>Jenis</th>
+                            <th>Nominal</th>
+                            <th>Harga Asli</th>
+                            <th>Harga Jual</th>
+                            <th>Status</th>
+                            <th>Ket</th>
+                            <th>Edit</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody">
-                        <!-- Rows will be generated here -->
-                    </tbody>
+                    <tbody id="tableBody"></tbody>
                 </table>
-            </div>
-            
-            <div class="table-footer">
-                <span id="rowCount">0 baris</span>
-                <span class="table-tip">💡 Klik "📊 Muat Data" untuk edit data lama | Klik "💾 Simpan" untuk save data baru</span>
             </div>
         </div>
     </section>
@@ -144,12 +109,108 @@
             <form id="createSheetForm" class="modal-form">
                 <div class="form-group">
                     <label>Nama Sheet</label>
-                    <input type="text" id="newSheetName" required placeholder="Contoh: Januari, Pulsa, Keuangan">
-                    <small>Format: <strong>user1_namasheet</strong></small>
+                    <input type="text" id="newSheetName" required placeholder="Contoh: Januari">
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn-cancel" data-modal="createSheetModal">Batal</button>
-                    <button type="submit" class="btn-submit">Buat Sheet</button>
+                    <button type="submit" class="btn-submit">Buat</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Uang Masuk -->
+    <div id="masukModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💰 Uang Masuk</h3>
+                <button class="close-modal" data-modal="masukModal">×</button>
+            </div>
+            <form id="masukForm" class="modal-form">
+                <input type="hidden" id="editRowIndex">
+                <div class="form-group">
+                    <label>Tanggal</label>
+                    <input type="date" id="masukTanggal" required>
+                </div>
+                <div class="form-group">
+                    <label>Nama</label>
+                    <input type="text" id="masukNama" required placeholder="Nama pelanggan">
+                </div>
+                <div class="form-group">
+                    <label>Jenis</label>
+                    <select id="masukJenis" required>
+                        <option value="">-- Pilih --</option>
+                        <option value="Pulsa">Pulsa</option>
+                        <option value="Kuota">Kuota</option>
+                        <option value="E-Wallet">E-Wallet</option>
+                        <option value="Token">Token</option>
+                        <option value="Transfer">Transfer Bank</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div class="form-group" id="groupNominal">
+                    <label>Nominal</label>
+                    <select id="masukNominalDropdown" style="display:none"></select>
+                    <input type="text" id="masukNominalManual" style="display:none" placeholder="Contoh: 1GB 3 Hari">
+                </div>
+                <div class="form-group" id="groupHargaAsli">
+                    <label>Harga Asli</label>
+                    <input type="number" id="masukHargaAsli" readonly>
+                </div>
+                <div class="form-group" id="groupHargaJual">
+                    <label>Harga Jual</label>
+                    <input type="number" id="masukHargaJual">
+                </div>
+                <div class="form-group">
+                    <label>Keterangan (Opsional)</label>
+                    <input type="text" id="masukKet">
+                </div>
+                <div class="form-group">
+                    <label>Konfirmasi</label>
+                    <select id="masukKonfirmasi" required>
+                        <option value="Bayar">Bayar</option>
+                        <option value="Ngutang">Ngutang</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" data-modal="masukModal">Batal</button>
+                    <button type="submit" class="btn-submit">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Uang Keluar -->
+    <div id="keluarModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>💸 Uang Keluar</h3>
+                <button class="close-modal" data-modal="keluarModal">×</button>
+            </div>
+            <form id="keluarForm" class="modal-form">
+                <div class="form-group">
+                    <label>Tanggal</label>
+                    <input type="date" id="keluarTanggal" required>
+                </div>
+                <div class="form-group">
+                    <label>Jenis</label>
+                    <select id="keluarJenis" required>
+                        <option value="">-- Pilih --</option>
+                        <option value="Setor">Setor</option>
+                        <option value="Ambil Gaji">Ambil Gaji</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nominal</label>
+                    <input type="number" id="keluarNominal" required placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Keterangan</label>
+                    <input type="text" id="keluarKet" placeholder="Opsional">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" data-modal="keluarModal">Batal</button>
+                    <button type="submit" class="btn-submit">Simpan</button>
                 </div>
             </form>
         </div>
