@@ -1,12 +1,37 @@
-// Data Pulsa - Editable Table Version
+// Data Pulsa V2 - POS System
 
-// ========== CONFIG (INLINE) ==========
 const CONFIG = {
-    API_URL: 'https://script.google.com/macros/s/AKfycbwRafiiUzRt6yo8GxV2d0pG4VS64LBj8Mb9qnDUSVQDTGVEcZcB6E2TffXh3_vfopPHbQ/exec',
+    API_URL: 'https://script.google.com/macros/s/AKfycbwYIm4bfNT4qZWvlGCpWsDkMV5ko-RQa7wyVvHolcrGXX1iRyYeGiJJ_j_kRubhGJgfUw/exec',
     SPREADSHEET_ID: '1AHkRaRjdYbW2HlKx6_nfXk7HK0cR5CRnqoqJtHbEelw',
-    JENIS_OPTIONS: ['Pulsa', 'Kuota', 'Transfer', 'E-Wallet', 'Topup']
+    
+    PULSA_PRICE: {
+        '5k': {asli: 5000, jual: 8000},
+        '10k': {asli: 10000, jual: 13000},
+        '15k': {asli: 15000, jual: 18000},
+        '20k': {asli: 20000, jual: 23000},
+        '25k': {asli: 25000, jual: 28000},
+        '30k': {asli: 30000, jual: 33000},
+        '45k': {asli: 45000, jual: 48000},
+        '50k': {asli: 50000, jual: 53000},
+        '55k': {asli: 55000, jual: 58000},
+        '60k': {asli: 60000, jual: 63000},
+        '65k': {asli: 65000, jual: 68000},
+        '70k': {asli: 70000, jual: 73000},
+        '75k': {asli: 75000, jual: 78000},
+        '80k': {asli: 80000, jual: 83000},
+        '85k': {asli: 85000, jual: 88000},
+        '90k': {asli: 90000, jual: 93000},
+        '95k': {asli: 95000, jual: 98000},
+        '100k': {asli: 100000, jual: 103000},
+        '150k': {asli: 150000, jual: 153000}
+    },
+    
+    TOKEN_PRICE: {
+        '20k': {asli: 20000, jual: 23000},
+        '50k': {asli: 50000, jual: 53000},
+        '100k': {asli: 100000, jual: 103000}
+    }
 };
-
 
 const API = {
     async call(action, data = {}) {
@@ -29,13 +54,19 @@ const API = {
         return await this.call('createSheet', { username, sheetName, token });
     },
     async getTransactions(sheetName, token) {
-        return await this.call('getTransactions', { sheetName, token });
+        return await this.call('getTransactionsV2', { sheetName, token });
     },
-    async saveAllTransactions(sheetName, transactions, token) {
-        return await this.call('saveAllTransactions', { sheetName, transactions, token });
+    async addTransaction(sheetName, transaction, token) {
+        return await this.call('addTransactionV2', { sheetName, transaction, token });
+    },
+    async updateTransaction(sheetName, rowIndex, transaction, token) {
+        return await this.call('updateTransactionV2', { sheetName, rowIndex, transaction, token });
+    },
+    async deleteTransaction(sheetName, rowIndex, token) {
+        return await this.call('deleteTransaction', { sheetName, rowIndex, token });
     },
     async getSummary(sheetName, token) {
-        return await this.call('getSummary', { sheetName, token });
+        return await this.call('getSummaryV2', { sheetName, token });
     }
 };
 
@@ -46,35 +77,34 @@ function formatRupiah(number) {
         minimumFractionDigits: 0
     }).format(number);
 }
-// ========== END CONFIG ==========
+
+function formatDate(date) {
+    const d = new Date(date);
+    return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+}
 
 const token = localStorage.getItem('session_token');
 const username = localStorage.getItem('username');
 
-if (!token || !username) {
-    window.location.href = '../login.html';
-}
+if (!token || !username) window.location.href = '../login.html';
 
 let userSheets = [];
 let currentSheet = null;
-let tableRows = [];
+let transactions = [];
+let editingIndex = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    initDataPulsa();
+    initApp();
 });
 
-function initDataPulsa() {
+function initApp() {
     document.getElementById('currentUser').textContent = `User: ${username}`;
-    
     updateHeaderTime();
     setInterval(updateHeaderTime, 1000);
     
-    document.getElementById('backBtn')?.addEventListener('click', () => {
-        window.location.href = '../dashboard.html';
-    });
-    
+    document.getElementById('backBtn')?.addEventListener('click', () => window.location.href = '../dashboard.html');
     document.getElementById('mobileLogoutBtn')?.addEventListener('click', () => {
-        if (confirm('Keluar dari sistem?')) {
+        if (confirm('Keluar?')) {
             localStorage.clear();
             window.location.href = '../login.html';
         }
@@ -82,19 +112,22 @@ function initDataPulsa() {
     
     document.getElementById('sheetSelect')?.addEventListener('change', (e) => {
         currentSheet = e.target.value;
-        if (currentSheet) {
-            loadSheetData();
-        } else {
-            hideDataSections();
-        }
+        if (currentSheet) loadSheetData();
+        else hideDataSections();
     });
     
-    document.getElementById('createSheetBtn')?.addEventListener('click', openCreateSheetModal);
+    document.getElementById('createSheetBtn')?.addEventListener('click', () => openModal('createSheetModal'));
     document.getElementById('createSheetForm')?.addEventListener('submit', handleCreateSheet);
     
-    document.getElementById('loadDataBtn')?.addEventListener('click', loadDataToTable);
-    document.getElementById('addRowBtn')?.addEventListener('click', addNewRow);
-    document.getElementById('saveAllBtn')?.addEventListener('click', saveAllData);
+    document.getElementById('btnMasuk')?.addEventListener('click', () => openMasukModal());
+    document.getElementById('btnKeluar')?.addEventListener('click', () => openKeluarModal());
+    
+    document.getElementById('masukJenis')?.addEventListener('change', handleJenisChange);
+    document.getElementById('masukNominalDropdown')?.addEventListener('change', handleNominalChange);
+    document.getElementById('masukNominalManual')?.addEventListener('input', handleManualNominalChange);
+    
+    document.getElementById('masukForm')?.addEventListener('submit', handleMasukSubmit);
+    document.getElementById('keluarForm')?.addEventListener('submit', handleKeluarSubmit);
     
     document.querySelectorAll('.close-modal, .btn-cancel').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -117,7 +150,6 @@ function updateHeaderTime() {
 async function loadUserSheets() {
     try {
         const result = await API.getUserSheets(username, token);
-        
         if (result.success) {
             userSheets = result.sheets || [];
             renderSheetSelect();
@@ -126,16 +158,14 @@ async function loadUserSheets() {
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('❌ Gagal memuat daftar sheet');
+        alert('❌ Gagal memuat sheet');
     }
 }
 
 function renderSheetSelect() {
     const select = document.getElementById('sheetSelect');
     if (!select) return;
-    
     select.innerHTML = '<option value="">-- Pilih Sheet --</option>';
-    
     userSheets.forEach(sheet => {
         const option = document.createElement('option');
         option.value = sheet;
@@ -144,27 +174,18 @@ function renderSheetSelect() {
     });
 }
 
-function openCreateSheetModal() {
-    document.getElementById('newSheetName').value = '';
-    openModal('createSheetModal');
-}
-
 async function handleCreateSheet(e) {
     e.preventDefault();
-    
     const sheetName = document.getElementById('newSheetName').value.trim();
-    
     if (!sheetName) {
-        alert('❌ Nama sheet tidak boleh kosong');
+        alert('❌ Nama sheet kosong');
         return;
     }
-    
     try {
         const result = await API.createSheet(username, sheetName, token);
-        
         if (result.success) {
             closeModal('createSheetModal');
-            alert('✅ Sheet berhasil dibuat!');
+            alert('✅ Sheet dibuat!');
             await loadUserSheets();
             const fullName = `${username}_${sheetName}`;
             document.getElementById('sheetSelect').value = fullName;
@@ -175,32 +196,31 @@ async function handleCreateSheet(e) {
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('❌ Terjadi kesalahan');
+        alert('❌ Error');
     }
 }
 
 async function loadSheetData() {
     if (!currentSheet) return;
-    
     showDataSections();
     
     try {
-        // Hanya load summary, TIDAK load transaksi
-        const summaryResult = await API.getSummary(currentSheet, token);
+        const [transResult, summaryResult] = await Promise.all([
+            API.getTransactions(currentSheet, token),
+            API.getSummary(currentSheet, token)
+        ]);
+        
+        if (transResult.success) {
+            transactions = transResult.transactions || [];
+            renderTable();
+        }
         
         if (summaryResult.success) {
             updateSummary(summaryResult.summary);
-        } else {
-            updateSummary({ total: 0, utang: 0, sisa: 0 });
         }
-        
-        // Render tabel kosong untuk input baru
-        tableRows = [];
-        renderEmptyTable();
-        
     } catch (error) {
         console.error('Error:', error);
-        alert('❌ Gagal memuat data');
+        alert('❌ Error loading');
     }
 }
 
@@ -218,278 +238,229 @@ function updateSummary(summary) {
     document.getElementById('totalUang').textContent = formatRupiah(summary.total || 0);
     document.getElementById('jumlahUtang').textContent = formatRupiah(summary.utang || 0);
     document.getElementById('sisaUang').textContent = formatRupiah(summary.sisa || 0);
+    document.getElementById('income').textContent = formatRupiah(summary.income || 0);
 }
 
 function renderTable() {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
     
-    // Render existing rows
-    tableRows.forEach((row, index) => {
-        tbody.appendChild(createTableRow(row, index));
-    });
-    
-    // Add 10 empty rows for new input
-    for (let i = 0; i < 10; i++) {
-        tbody.appendChild(createTableRow({
-            tanggal: '',
-            nama: '',
-            jenis: '',
-            harga: '',
-            status: 'Belum',
-            keterangan: ''
-        }, tableRows.length + i, true));
-    }
-    
-    updateRowCount();
-}
-
-function renderEmptyTable() {
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = '';
-    
-    // Hanya 10 baris kosong untuk input baru
-    for (let i = 0; i < 10; i++) {
-        tbody.appendChild(createTableRow({
-            tanggal: '',
-            nama: '',
-            jenis: '',
-            harga: '',
-            status: 'Belum',
-            keterangan: ''
-        }, i, true));
-    }
-    
-    updateRowCount();
-}
-
-async function loadDataToTable() {
-    if (!currentSheet) {
-        alert('❌ Pilih sheet terlebih dahulu');
+    if (transactions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;">Belum ada transaksi</td></tr>';
         return;
     }
+    
+    transactions.forEach((t, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${t.tanggal}</td>
+            <td>${t.nama}</td>
+            <td>${t.jenis}</td>
+            <td>${t.nominal}</td>
+            <td>${formatRupiah(t.harga_asli || 0)}</td>
+            <td>${formatRupiah(t.harga_jual || 0)}</td>
+            <td><span class="status-badge status-${t.status.toLowerCase()}" onclick="toggleStatus(${idx})">${t.status === 'Bayar' ? '✅' : '❌'}</span></td>
+            <td>${t.keterangan || '-'}</td>
+            <td><button class="btn-edit-icon" onclick="editTransaction(${idx})">✏️</button></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+async function toggleStatus(index) {
+    const t = transactions[index];
+    t.status = t.status === 'Bayar' ? 'Ngutang' : 'Bayar';
     
     try {
-        const transResult = await API.getTransactions(currentSheet, token);
-        
-        if (transResult.success) {
-            tableRows = transResult.transactions || [];
-            renderTable(); // Render data yang ada + 10 baris kosong
-            alert('✅ Data berhasil dimuat!');
-        } else {
-            alert('❌ ' + transResult.message);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Gagal memuat data');
-    }
-}
-
-function createTableRow(data, index, isNew = false) {
-    const tr = document.createElement('tr');
-    if (isNew) tr.classList.add('unsaved');
-    tr.dataset.index = index;
-    
-    // Tanggal
-    const tdTanggal = document.createElement('td');
-    const inputTanggal = document.createElement('input');
-    inputTanggal.type = 'date';
-    inputTanggal.value = data.tanggal ? convertDateToInput(data.tanggal) : '';
-    tdTanggal.appendChild(inputTanggal);
-    
-    // Nama
-    const tdNama = document.createElement('td');
-    const inputNama = document.createElement('input');
-    inputNama.type = 'text';
-    inputNama.value = data.nama || '';
-    inputNama.placeholder = 'Nama transaksi';
-    tdNama.appendChild(inputNama);
-    
-    // Jenis (dropdown)
-    const tdJenis = document.createElement('td');
-    const selectJenis = document.createElement('select');
-    selectJenis.innerHTML = '<option value="">-- Pilih --</option>';
-    CONFIG.JENIS_OPTIONS.forEach(opt => {
-        const option = document.createElement('option');
-        option.value = opt;
-        option.textContent = opt;
-        if (data.jenis === opt) option.selected = true;
-        selectJenis.appendChild(option);
-    });
-    tdJenis.appendChild(selectJenis);
-    
-    // Harga
-    const tdHarga = document.createElement('td');
-    const inputHarga = document.createElement('input');
-    inputHarga.type = 'number';
-    inputHarga.value = data.harga || '';
-    inputHarga.placeholder = '0';
-    tdHarga.appendChild(inputHarga);
-    
-    // Konfirmasi (Toggle)
-    const tdStatus = document.createElement('td');
-    const divToggle = document.createElement('div');
-    divToggle.className = 'confirm-toggle';
-    divToggle.innerHTML = `<span class="confirm-icon">${data.status === 'Bayar' ? '✅' : '❌'}</span>`;
-    divToggle.dataset.status = data.status || 'Belum';
-    divToggle.addEventListener('click', () => {
-        const newStatus = divToggle.dataset.status === 'Bayar' ? 'Belum' : 'Bayar';
-        divToggle.dataset.status = newStatus;
-        divToggle.innerHTML = `<span class="confirm-icon">${newStatus === 'Bayar' ? '✅' : '❌'}</span>`;
-    });
-    tdStatus.appendChild(divToggle);
-    
-    // Keterangan
-    const tdKet = document.createElement('td');
-    const inputKet = document.createElement('input');
-    inputKet.type = 'text';
-    inputKet.value = data.keterangan || '';
-    inputKet.placeholder = 'Keterangan';
-    tdKet.appendChild(inputKet);
-    
-    // Delete button
-    const tdDelete = document.createElement('td');
-    const btnDelete = document.createElement('button');
-    btnDelete.className = 'btn-delete-row';
-    btnDelete.innerHTML = '🗑️';
-    btnDelete.addEventListener('click', () => {
-        if (confirm('Hapus baris ini?')) {
-            tr.remove();
-            updateRowCount();
-        }
-    });
-    tdDelete.appendChild(btnDelete);
-    
-    tr.appendChild(tdTanggal);
-    tr.appendChild(tdNama);
-    tr.appendChild(tdJenis);
-    tr.appendChild(tdHarga);
-    tr.appendChild(tdStatus);
-    tr.appendChild(tdKet);
-    tr.appendChild(tdDelete);
-    
-    return tr;
-}
-
-function addNewRow() {
-    const tbody = document.getElementById('tableBody');
-    tbody.appendChild(createTableRow({
-        tanggal: '',
-        nama: '',
-        jenis: '',
-        harga: '',
-        status: 'Belum',
-        keterangan: ''
-    }, tbody.children.length, true));
-    updateRowCount();
-}
-
-async function saveAllData() {
-    if (!currentSheet) {
-        alert('❌ Pilih sheet terlebih dahulu');
-        return;
-    }
-    
-    const tbody = document.getElementById('tableBody');
-    const rows = Array.from(tbody.querySelectorAll('tr'));
-    
-    const transactions = [];
-    const dates = [];
-    
-    // Collect data
-    rows.forEach((tr, idx) => {
-        const inputs = tr.querySelectorAll('input, select');
-        const tanggal = inputs[0].value;
-        const nama = inputs[1].value;
-        const jenis = inputs[2].value;
-        const harga = inputs[3].value;
-        const status = tr.querySelector('.confirm-toggle').dataset.status;
-        const keterangan = inputs[4].value;
-        
-        // Skip empty rows
-        if (!nama && !jenis && !harga) return;
-        
-        transactions.push({
-            index: idx,
-            tanggal,
-            nama,
-            jenis,
-            harga: parseInt(harga) || 0,
-            status,
-            keterangan
-        });
-        
-        if (tanggal) dates.push({ index: idx, date: tanggal });
-    });
-    
-    // Auto-fill dates
-    if (dates.length >= 2) {
-        const firstDate = new Date(dates[0].date);
-        const lastIndex = dates[dates.length - 1].index;
-        
-        transactions.forEach(t => {
-            if (!t.tanggal && t.index >= dates[0].index && t.index <= lastIndex) {
-                const daysDiff = t.index - dates[0].index;
-                const autoDate = new Date(firstDate);
-                autoDate.setDate(autoDate.getDate() + daysDiff);
-                t.tanggal = formatDateForSave(autoDate);
-            }
-        });
-    }
-    
-    // Validate
-    const invalid = transactions.find(t => !t.tanggal || !t.nama || !t.jenis);
-    if (invalid) {
-        alert('❌ Lengkapi data: Tanggal, Nama, dan Jenis wajib diisi');
-        return;
-    }
-    
-    // Save
-    try {
-        const result = await API.saveAllTransactions(currentSheet, transactions, token);
-        
+        const result = await API.updateTransaction(currentSheet, index, t, token);
         if (result.success) {
-            alert('✅ Data berhasil disimpan!');
-            
-            // Reload summary
-            const summaryResult = await API.getSummary(currentSheet, token);
-            if (summaryResult.success) {
-                updateSummary(summaryResult.summary);
-            }
-            
-            // Clear table - kembali ke mode input baru
-            tableRows = [];
-            renderEmptyTable();
-            
+            loadSheetData();
         } else {
             alert('❌ ' + result.message);
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('❌ Terjadi kesalahan saat menyimpan');
+        alert('❌ Error');
     }
 }
 
-function updateRowCount() {
-    const tbody = document.getElementById('tableBody');
-    const count = tbody.querySelectorAll('tr').length;
-    document.getElementById('rowCount').textContent = `${count} baris`;
-}
-
-function convertDateToInput(dateStr) {
-    // Convert DD-MM-YYYY to YYYY-MM-DD
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+function openMasukModal(index = null) {
+    editingIndex = index;
+    const form = document.getElementById('masukForm');
+    form.reset();
+    document.getElementById('masukTanggal').value = new Date().toISOString().split('T')[0];
+    
+    if (index !== null) {
+        const t = transactions[index];
+        document.getElementById('editRowIndex').value = index;
+        document.getElementById('masukTanggal').value = t.tanggal.split('-').reverse().join('-');
+        document.getElementById('masukNama').value = t.nama;
+        document.getElementById('masukJenis').value = t.jenis;
+        // Trigger jenis change untuk populate dropdown/manual
+        handleJenisChange();
+        document.getElementById('masukHargaAsli').value = t.harga_asli;
+        document.getElementById('masukHargaJual').value = t.harga_jual;
+        document.getElementById('masukKet').value = t.keterangan || '';
+        document.getElementById('masukKonfirmasi').value = t.status;
+    } else {
+        document.getElementById('editRowIndex').value = '';
     }
-    return dateStr;
+    
+    openModal('masukModal');
 }
 
-function formatDateForSave(date) {
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
+function handleJenisChange() {
+    const jenis = document.getElementById('masukJenis').value;
+    const dropdown = document.getElementById('masukNominalDropdown');
+    const manual = document.getElementById('masukNominalManual');
+    
+    dropdown.style.display = 'none';
+    manual.style.display = 'none';
+    dropdown.innerHTML = '';
+    manual.value = '';
+    
+    if (jenis === 'Pulsa') {
+        dropdown.style.display = 'block';
+        dropdown.innerHTML = '<option value="">-- Pilih --</option>';
+        Object.keys(CONFIG.PULSA_PRICE).forEach(key => {
+            dropdown.innerHTML += `<option value="${key}">${key}</option>`;
+        });
+    } else if (jenis === 'Token') {
+        dropdown.style.display = 'block';
+        dropdown.innerHTML = '<option value="">-- Pilih --</option>';
+        Object.keys(CONFIG.TOKEN_PRICE).forEach(key => {
+            dropdown.innerHTML += `<option value="${key}">${key}</option>`;
+        });
+    } else {
+        manual.style.display = 'block';
+    }
+}
+
+function handleNominalChange() {
+    const jenis = document.getElementById('masukJenis').value;
+    const nominal = document.getElementById('masukNominalDropdown').value;
+    
+    if (jenis === 'Pulsa' && CONFIG.PULSA_PRICE[nominal]) {
+        document.getElementById('masukHargaAsli').value = CONFIG.PULSA_PRICE[nominal].asli;
+        document.getElementById('masukHargaJual').value = CONFIG.PULSA_PRICE[nominal].jual;
+    } else if (jenis === 'Token' && CONFIG.TOKEN_PRICE[nominal]) {
+        document.getElementById('masukHargaAsli').value = CONFIG.TOKEN_PRICE[nominal].asli;
+        document.getElementById('masukHargaJual').value = CONFIG.TOKEN_PRICE[nominal].jual;
+    }
+}
+
+function handleManualNominalChange() {
+    const jenis = document.getElementById('masukJenis').value;
+    const nominalText = document.getElementById('masukNominalManual').value;
+    
+    // Extract angka dari text (contoh: "1GB 3 Hari 50000" → 50000)
+    const angka = parseInt(nominalText.replace(/\D/g, '')) || 0;
+    
+    if (jenis === 'E-Wallet') {
+        document.getElementById('masukHargaAsli').value = angka;
+        const fee = angka >= 100000 ? 5000 : 3000;
+        document.getElementById('masukHargaJual').value = angka + fee;
+    } else if (jenis === 'Transfer') {
+        document.getElementById('masukHargaAsli').value = angka;
+        document.getElementById('masukHargaJual').value = angka + 7000;
+    } else if (jenis === 'Kuota' || jenis === 'Lainnya') {
+        document.getElementById('masukHargaAsli').value = angka;
+        document.getElementById('masukHargaJual').value = angka;
+    }
+}
+
+async function handleMasukSubmit(e) {
+    e.preventDefault();
+    
+    const rowIndex = document.getElementById('editRowIndex').value;
+    const jenis = document.getElementById('masukJenis').value;
+    
+    let nominal = '';
+    if (jenis === 'Pulsa' || jenis === 'Token') {
+        nominal = document.getElementById('masukNominalDropdown').value;
+    } else {
+        nominal = document.getElementById('masukNominalManual').value;
+    }
+    
+    const tanggalInput = document.getElementById('masukTanggal').value;
+    const [year, month, day] = tanggalInput.split('-');
+    
+    const transaction = {
+        tanggal: `${day}-${month}-${year}`,
+        nama: document.getElementById('masukNama').value,
+        jenis: jenis,
+        nominal: nominal,
+        harga_asli: parseInt(document.getElementById('masukHargaAsli').value) || 0,
+        harga_jual: parseInt(document.getElementById('masukHargaJual').value) || 0,
+        status: document.getElementById('masukKonfirmasi').value,
+        keterangan: document.getElementById('masukKet').value,
+        tipe: 'masuk'
+    };
+    
+    try {
+        let result;
+        if (rowIndex) {
+            result = await API.updateTransaction(currentSheet, parseInt(rowIndex), transaction, token);
+        } else {
+            result = await API.addTransaction(currentSheet, transaction, token);
+        }
+        
+        if (result.success) {
+            closeModal('masukModal');
+            loadSheetData();
+            alert('✅ Tersimpan!');
+        } else {
+            alert('❌ ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error');
+    }
+}
+
+function openKeluarModal() {
+    document.getElementById('keluarForm').reset();
+    document.getElementById('keluarTanggal').value = new Date().toISOString().split('T')[0];
+    openModal('keluarModal');
+}
+
+async function handleKeluarSubmit(e) {
+    e.preventDefault();
+    
+    const tanggalInput = document.getElementById('keluarTanggal').value;
+    const [year, month, day] = tanggalInput.split('-');
+    const jenis = document.getElementById('keluarJenis').value;
+    const nominal = parseInt(document.getElementById('keluarNominal').value) || 0;
+    
+    const transaction = {
+        tanggal: `${day}-${month}-${year}`,
+        nama: jenis,
+        jenis: jenis,
+        nominal: '-' + nominal,
+        harga_asli: -nominal,
+        harga_jual: -nominal,
+        status: 'Bayar',
+        keterangan: document.getElementById('keluarKet').value,
+        tipe: 'keluar'
+    };
+    
+    try {
+        const result = await API.addTransaction(currentSheet, transaction, token);
+        if (result.success) {
+            closeModal('keluarModal');
+            loadSheetData();
+            alert('✅ Tersimpan!');
+        } else {
+            alert('❌ ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error');
+    }
+}
+
+function editTransaction(index) {
+    openMasukModal(index);
 }
 
 function openModal(id) {
