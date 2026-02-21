@@ -24,8 +24,7 @@ const CONFIG = {
 '95k': {asli: 95500, jual: 98000},
 '100k': {asli: 100500, jual: 103000},
 '150k': {asli: 150500, jual: 153000}
-
-    },
+},
     
     TOKEN_PRICE: {
         '20k': {asli: 20800, jual: 23000},
@@ -471,4 +470,5 @@ function openModal(id) {
 function closeModal(id) {
     document.getElementById(id)?.classList.remove('show');
 }
+
 
