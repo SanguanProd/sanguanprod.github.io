@@ -2,7 +2,7 @@
 
 const CONFIG = {
     // Ganti dengan URL Google Apps Script deployment
-    API_URL: 'https://script.google.com/macros/s/AKfycbxm6qwWstFfkaaaBTfcC4SZ1I8GU82MFnChgEHbjZJG2IbueZDL_4nhd_qsEZJYJ8OKWQ/exec',
+    API_URL: 'https://script.google.com/macros/s/AKfycbwYIm4bfNT4qZWvlGCpWsDkMV5ko-RQa7wyVvHolcrGXX1iRyYeGiJJ_j_kRubhGJgfUw/exec',
     
     // Spreadsheet ID (sama dengan spreadsheet utama)
     SPREADSHEET_ID: '1AHkRaRjdYbW2HlKx6_nfXk7HK0cR5CRnqoqJtHbEelw',
@@ -95,4 +95,5 @@ function formatDate(date) {
     const year = d.getFullYear();
     return `${day}-${month}-${year}`;
 }
+
 
